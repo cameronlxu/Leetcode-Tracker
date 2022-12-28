@@ -46,6 +46,57 @@ app.post('/interactions', async function (req, res) {
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { name } = data;
 
+    // "complete" guild command
+    if (name === 'complete' && id) {
+      // const userId = req.body.member.user.id;
+      // const link = req.body.data.options[0].value;
+      // const date = new Date();
+
+      // const json = {
+      //   'userId': userId,
+      //   'problem': link,
+      //   'time': date.toLocaleDateString() // --> "2/1/2013"
+      // }
+
+      /**
+       * Current Idea Workflow:
+       * 
+       * USER PART
+       * 1. Use a GET request to see if the user exists
+       * 2. If user does not exist use the POST request
+       * 3. Else use the PUT request
+       * 
+       * UPDATING PART
+       * 4. Lambda function will edit dynamoDB
+       * 5. Once response is received then we use a .then(() => {}) to showcase update response on bot side
+       * 
+       * 
+       * CODE READABILITY
+       * - Put the res.send({}) into another function so it can be called by both axios requests
+       */
+
+      /* CODE IDEA:
+
+      function completeResponse() {
+        return res.send({...});
+      }
+
+      ...
+      
+      async const userExists = await axios.get("link");
+      
+      if (userExists) {
+        axios.put().then(() => {
+          return completeResponse();
+        })
+      } else {
+        axios.post().then(() => {
+          return completeResponse();
+        })
+      }
+      */
+    }
+
     // "test" guild command
     if (name === 'test') {
       // Send a message into the channel where command was triggered from

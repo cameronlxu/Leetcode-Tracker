@@ -80,3 +80,18 @@ export const CHALLENGE_COMMAND = {
   ],
   type: 1,
 };
+
+// Complete Command
+export const COMPLETE_COMMAND = {
+  name: 'complete',
+  description: 'Input a completed leetcode problem',
+  options: [
+    {
+      type: 3,
+      name: 'link',
+      description: 'Input the leetcode problem link',
+      required: true
+    }
+  ],
+  type: 1
+}
