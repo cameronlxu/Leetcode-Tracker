@@ -57,6 +57,48 @@ async function createUser(requestBody) {
     });
 }
 
+async function updateUser(requestBody) {
+    /**
+     * "requestBody" Structure:
+     * 
+     * {
+     *      userId: ...,
+     *      problem: {
+     *          link: ...,
+     *          date: ...,
+     *          difficulty: ...
+     *      }
+     * }
+     */
+
+    params = {
+        TableName: TABLE_NAME,
+        Key: {
+            'userId': requestBody['userId'],
+        },
+        UpdateExpression: "SET #problems = list_append(#problems, :val)",
+        ExpressionAttributeNames: {
+            "#problems": "problems"
+        },
+        ExpressionAttributeValues: {
+            ':val': requestBody['problem']
+        },
+        ReturnValues: 'UPDATED_NEW'
+    }
+    
+    return await DYANMODB.update(params).promise().then((response) => {
+        console.log("Update Information: ", response);
+        const body = {
+            Operation: 'UPDATE',
+            Message: 'SUCCESS',
+            UpdatedAttributes: response
+        }
+        return buildResponse(200, body);
+    }, (error) => {
+        console.error("PATCHERROR: Could not patch user! : ", error);
+    });
+}
+
 function buildResponse(statusCode, body) {
     return {
         statusCode: statusCode,
