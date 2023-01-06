@@ -27,19 +27,19 @@ exports.handler = async function(event) {
             response = buildResponse(200);
             break;
         case event.httpMethod === 'POST' && event.path === COMPLETE_PATH:
-            resposne = await createUser(JSON.parse(event.body));
+            response = await createUser(JSON.parse(event.body));
             break;
         case event.httpMethod === 'PATCH' && event.path === COMPLETE_PATH:
-            resposne = await updateUser(JSON.parse(event.body));
+            response = await updateUser(JSON.parse(event.body));
             break;
         case event.httpMethod === 'GET' && event.path === PROGRESS_PATH:
-            resposne = await getProgress(JSON.parse(event.body));
+            response = await getProgress(JSON.parse(event.body));
             break;
         case event.httpMethod === 'GET' && event.path === RANKING_PATH:
-            resposne = await getRanking(JSON.parse(event.body));
+            response = await getRanking(JSON.parse(event.body));
             break;
         case event.httpMethod === 'DELETE' && event.path === DELETE_PATH:
-            resposne = await deleteUserData(JSON.parse(event.body)['userId']);
+            response = await deleteUserData(JSON.parse(event.body)['userId']);
             break;
     }
 
@@ -63,7 +63,7 @@ async function createUser(requestBody) {
     problemObj.link = URL;
     problemObj.date = new Date().toLocaleDateString();
 
-    getDifficulty(URL).then((difficulty) => {
+    await getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
         newUser.problems.push(problemObj);
     });
@@ -79,7 +79,7 @@ async function createUser(requestBody) {
         const body = {
             Operation: 'SAVE',
             Message: 'SUCCESS',
-            Item: requestBody
+            Item: newUser
         }
         return buildResponse(200, body);
     }, (error) => {
@@ -97,7 +97,7 @@ async function updateUser(requestBody) {
     problemObj.link = URL;
     problemObj.date = new Date().toLocaleDateString();
 
-    getDifficulty(URL).then((difficulty) => {
+    await getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
     });
     
@@ -114,7 +114,7 @@ async function updateUser(requestBody) {
             "#problems": "problems"
         },
         ExpressionAttributeValues: {
-            ':val': problemObj['problem']
+            ':val': [problemObj]    // list_append() concatenates two lists
         },
         ReturnValues: 'UPDATED_NEW'
     }
