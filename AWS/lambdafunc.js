@@ -13,12 +13,9 @@ const DELETE_PATH = '/delete';
 const HEALTH_PATH = '/health';
 
 let problemObj = {
-    userId: '',
-    problem: {
-        link: '',
-        date: new Date().toLocaleDateString(),
-        difficulty: ''
-    }
+    link: '',
+    date: new Date().toLocaleDateString(),
+    difficulty: ''
 }
 
 exports.handler = async function(event) {
@@ -63,11 +60,8 @@ async function createUser(requestBody) {
     }
 
     // 2. Create the problemObj to append to 'problems'
-    problemObj = {
-        link: URL,
-        date: new Date().toLocaleTimeString(),
-        difficulty: ''
-    }
+    problemObj.link = URL;
+    problemObj.date = new Date().toLocaleDateString();
 
     getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
@@ -100,11 +94,11 @@ async function updateUser(requestBody) {
     /**
      * Setup problemObj with userId, URL, & difficulty
      */
-    problemObj.userId = userId;
-    problemObj.problem.link = URL;
+    problemObj.link = URL;
+    problemObj.date = new Date().toLocaleDateString();
 
     getDifficulty(URL).then((difficulty) => {
-        problemObj.problem.difficulty = difficulty;
+        problemObj.difficulty = difficulty;
     });
     
     /**
