@@ -33,13 +33,13 @@ exports.handler = async function(event) {
             response = await updateUser(JSON.parse(event.body));
             break;
         case event.httpMethod === 'GET' && event.path === PROGRESS_PATH:
-            response = await getProgress(JSON.parse(event.body));
+            response = await getProgress(event.queryStringParameters.userId);
             break;
         case event.httpMethod === 'GET' && event.path === RANKING_PATH:
-            response = await getRanking(JSON.parse(event.body));
+            response = await getRanking(event.queryStringParameters.userId);
             break;
         case event.httpMethod === 'DELETE' && event.path === DELETE_PATH:
-            response = await deleteUserData(JSON.parse(event.body)['userId']);
+            response = await deleteUserData(event.queryStringParameters.userId);
             break;
     }
 
@@ -61,7 +61,7 @@ async function createUser(requestBody) {
 
     // 2. Create the problemObj to append to 'problems'
     problemObj.link = URL;
-    problemObj.date = new Date().toLocaleDateString();
+    problemObj.date = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
 
     await getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
@@ -95,7 +95,7 @@ async function updateUser(requestBody) {
      * Setup problemObj with userId, URL, & difficulty
      */
     problemObj.link = URL;
-    problemObj.date = new Date().toLocaleDateString();
+    problemObj.date = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
 
     await getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
@@ -114,7 +114,7 @@ async function updateUser(requestBody) {
             "#problems": "problems"
         },
         ExpressionAttributeValues: {
-            ':val': [problemObj]    // list_append() concatenates two lists
+            ':val': [problemObj]
         },
         ReturnValues: 'UPDATED_NEW'
     }
@@ -129,6 +129,100 @@ async function updateUser(requestBody) {
         return buildResponse(200, body);
     }, (error) => {
         console.error("PATCHERROR: Could not patch user! : ", error);
+    });
+}
+
+async function getProgress(userId) {
+    const params = {
+        ExpressionAttributeNames: {
+            "#theUser": "userId"
+        },
+        ExpressionAttributeValues: {
+            ":userId": userId
+        }, 
+        KeyConditionExpression: "#theUser = :userId", 
+        TableName: TABLE_NAME
+    }; 
+
+    return await DYANMODB.query(params).promise().then((response) => {
+        console.log(`getProgress successful for userId: ${userId}`, JSON.stringify(response, null, 2));
+
+        /**
+         * Example Success Response
+         * 
+         * {
+                "userId": "cameronlxu",
+                "problems": [
+                    {
+                        "link": "https://leetcode.com/problems/two-sum/",
+                        "date": "1/6/2023",
+                        "difficulty": "Easy"
+                    },
+                    {
+                        "link": "https://leetcode.com/problems/add-two-numbers/",
+                        "date": "1/6/2023",
+                        "difficulty": "Medium"
+                    }
+                ]
+            }
+         */
+
+        const problems = response.Items[0].problems;    // index 0 to return the JSON format, not the array
+
+        /**
+         * Get count of:
+         *      - Total Problems
+         *      - Total Easy
+         *      - Total Medium
+         *      - Total Hard
+         */
+        const totalProblems = problems.length;
+        let easyTotal = 0; 
+        let mediumTotal = 0;
+        let hardTotal = 0;
+        let latestDate = problems[0].date;  // start comparing from the zero-th index. Dates can only compare to other dates
+
+        problems.map((problem) => {
+            // Add to Difficulty Counts
+            const difficulty = problem.difficulty;
+            switch (difficulty) {
+                case 'Easy':
+                    easyTotal++;
+                    break;
+                case 'Medium':
+                    mediumTotal++;
+                    break;
+                case 'Hard':
+                    hardTotal++;
+                    break;
+                default:
+                    break;
+            }
+
+            // Find Latest (a.k.a. maximum) Date
+            if (problem.date > latestDate) {
+                latestDate = problem.date;
+            }
+        });
+
+        // Since we know the latest date in the problems array, find the problem matching the time
+        const latestProblem = problems.find(problem => {
+            return problem.date === latestDate.toLocaleString()
+        });
+
+        console.log('latestProblem: ', latestProblem);
+
+        const progress = {
+            "total": totalProblems,
+            "easy": easyTotal,
+            "medium": mediumTotal,
+            "hard": hardTotal,
+            "latestProblem": latestProblem
+        }
+
+        return buildResponse(200, progress);
+    }, (error) => {
+        console.error("QUERYERROR: Could not query user progress! : ", error);
     });
 }
 
