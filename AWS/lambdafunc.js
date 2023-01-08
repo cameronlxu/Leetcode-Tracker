@@ -12,6 +12,7 @@ const RANKING_PATH = '/ranking';
 const DELETE_PATH = '/delete';
 const HEALTH_PATH = '/health';
 
+// Object used in createUser() & updateUser()
 let problemObj = {
     link: '',
     date: new Date().toLocaleDateString(),
@@ -56,7 +57,10 @@ async function createUser(requestBody) {
     // 1. Create the newUser object to add to DyanmoDB
     let newUser = {
         userId: userId,
-        problems: []
+        problems: [],
+        EasyCount: 0,
+        MediumCount: 0,
+        HardCount: 0
     }
 
     // 2. Create the problemObj to append to 'problems'
@@ -66,6 +70,21 @@ async function createUser(requestBody) {
     await getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
         newUser.problems.push(problemObj);
+
+        // Set first count of difficulty category
+        switch (difficulty) {
+            case 'Easy':
+                newUser.EasyCount = 1;
+                break;
+            case 'Medium':
+                newUser.MediumCount = 1;
+                break;
+            case 'Hard':
+                newUser.HardCount = 1;
+                break;
+            default:
+                break;
+        }
     });
 
     /**
@@ -104,20 +123,28 @@ async function updateUser(requestBody) {
     /**
      * Prepare what to update in DynamoDB & send the update
      */
+    const difficultyCount = `${problemObj.difficulty}Count`;
     params = {
         TableName: TABLE_NAME,
         Key: {
             'userId': userId,
         },
-        UpdateExpression: "SET #problems = list_append(#problems, :val)",
+        UpdateExpression: `SET #problems = list_append(#problems, :val),
+            #${difficultyCount} = ${difficultyCount} + :inc
+        `,
         ExpressionAttributeNames: {
-            "#problems": "problems"
+            "#problems": "problems",
         },
         ExpressionAttributeValues: {
-            ':val': [problemObj]
+            ':val': [problemObj],    // list_append() concatenates two lists
+            ':inc': 1
         },
         ReturnValues: 'UPDATED_NEW'
     }
+
+    // Dynamically create the ExpressionAttributeName for the difficulty count
+    //      Note: Unused expressions are not allowed
+    params.ExpressionAttributeNames[`#${difficultyCount}`] = `${difficultyCount}`;
     
     return await DYANMODB.update(params).promise().then((response) => {
         console.log("Update Information: ", response);
@@ -163,7 +190,10 @@ async function getProgress(userId) {
                         "date": "1/6/2023",
                         "difficulty": "Medium"
                     }
-                ]
+                ],
+                "EasyCount": 1,
+                "MediumCount": 1,
+                "HardCount": 0
             }
          */
 
@@ -209,8 +239,6 @@ async function getProgress(userId) {
         const latestProblem = problems.find(problem => {
             return problem.date === latestDate.toLocaleString()
         });
-
-        console.log('latestProblem: ', latestProblem);
 
         const progress = {
             "total": totalProblems,
