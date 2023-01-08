@@ -37,7 +37,7 @@ exports.handler = async function(event) {
             response = await getProgress(event.queryStringParameters.userId);
             break;
         case event.httpMethod === 'GET' && event.path === RANKING_PATH:
-            response = await getRanking(event.queryStringParameters.userId);
+            response = await getRanking(event.queryStringParameters.userId, event.queryStringParameters.difficulty);
             break;
         case event.httpMethod === 'DELETE' && event.path === DELETE_PATH:
             response = await deleteUserData(event.queryStringParameters.userId);
@@ -231,6 +231,24 @@ async function getProgress(userId) {
     });
 }
 
+async function getRanking(userId, difficulty) {
+    const category = `${difficulty}Count`; // EasyCount, MediumCount, HardCount, TotalCount
+    const params = {
+        TableName: TABLE_NAME
+    }
+  
+    const allUsers = await scanDynamo(params, []);
+    const top3 = allUsers.sort((a, b) => b[category] - a[category]); // Sort in Descending Order
+
+    const ranking = {
+        "1": top3[0],
+        "2": top3[1] || null,
+        "3": top3[2] || null
+    }
+  
+    return buildResponse(200, ranking);
+}
+
 function buildResponse(statusCode, body) {
     return {
         statusCode: statusCode,
@@ -243,6 +261,20 @@ function buildResponse(statusCode, body) {
             "X-Requested-With" : "*"
         },
         body: JSON.stringify(body)
+    }
+}
+
+async function scanDynamo(scanParams, itemArray) {
+    try {
+      const dynamoData = await DYANMODB.scan(scanParams).promise();
+      itemArray = itemArray.concat(dynamoData.Items);
+      if (dynamoData.LastEvaluatedKey) {
+        scanParams.ExclusiveStartkey = dynamoData.LastEvaluatedKey;
+        return await scanDynamoRecords(scanParams, itemArray);
+      }
+      return itemArray;
+    } catch(error) {
+      console.error('Scan Error, could not scan! : ', error);
     }
 }
 
