@@ -196,40 +196,12 @@ async function getProgress(userId) {
                 "HardCount": 0
             }
          */
+        const userData = response.Items[0];     // index 0 to return the JSON format, not the array
+        const problems = userData.problems;
 
-        const problems = response.Items[0].problems;    // index 0 to return the JSON format, not the array
-
-        /**
-         * Get count of:
-         *      - Total Problems
-         *      - Total Easy
-         *      - Total Medium
-         *      - Total Hard
-         */
-        const totalProblems = problems.length;
-        let easyTotal = 0; 
-        let mediumTotal = 0;
-        let hardTotal = 0;
+        // Find Latest (a.k.a. maximum) Date
         let latestDate = problems[0].date;  // start comparing from the zero-th index. Dates can only compare to other dates
-
         problems.map((problem) => {
-            // Add to Difficulty Counts
-            const difficulty = problem.difficulty;
-            switch (difficulty) {
-                case 'Easy':
-                    easyTotal++;
-                    break;
-                case 'Medium':
-                    mediumTotal++;
-                    break;
-                case 'Hard':
-                    hardTotal++;
-                    break;
-                default:
-                    break;
-            }
-
-            // Find Latest (a.k.a. maximum) Date
             if (problem.date > latestDate) {
                 latestDate = problem.date;
             }
@@ -241,10 +213,10 @@ async function getProgress(userId) {
         });
 
         const progress = {
-            "total": totalProblems,
-            "easy": easyTotal,
-            "medium": mediumTotal,
-            "hard": hardTotal,
+            "total": problems.length,
+            "easy": userData.EasyCount,
+            "medium": userData.MediumCount,
+            "hard": userData.HardCount,
             "latestProblem": latestProblem
         }
 
