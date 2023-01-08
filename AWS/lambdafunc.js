@@ -60,7 +60,8 @@ async function createUser(requestBody) {
         problems: [],
         EasyCount: 0,
         MediumCount: 0,
-        HardCount: 0
+        HardCount: 0,
+        TotalCount: 0
     }
 
     // 2. Create the problemObj to append to 'problems'
@@ -70,6 +71,7 @@ async function createUser(requestBody) {
     await getDifficulty(URL).then((difficulty) => {
         problemObj.difficulty = difficulty;
         newUser.problems.push(problemObj);
+        newUser.TotalCount = 1;
 
         // Set first count of difficulty category
         switch (difficulty) {
@@ -130,10 +132,12 @@ async function updateUser(requestBody) {
             'userId': userId,
         },
         UpdateExpression: `SET #problems = list_append(#problems, :val),
-            #${difficultyCount} = ${difficultyCount} + :inc
+            #${difficultyCount} = ${difficultyCount} + :inc,
+            #TotalCount = TotalCount + :inc
         `,
         ExpressionAttributeNames: {
             "#problems": "problems",
+            "#TotalCount": "TotalCount",
         },
         ExpressionAttributeValues: {
             ':val': [problemObj],    // list_append() concatenates two lists
@@ -193,7 +197,8 @@ async function getProgress(userId) {
                 ],
                 "EasyCount": 1,
                 "MediumCount": 1,
-                "HardCount": 0
+                "HardCount": 0,
+                "TotalCount": 2
             }
          */
         const userData = response.Items[0];     // index 0 to return the JSON format, not the array
@@ -213,7 +218,7 @@ async function getProgress(userId) {
         });
 
         const progress = {
-            "total": problems.length,
+            "total": userData.TotalCount,
             "easy": userData.EasyCount,
             "medium": userData.MediumCount,
             "hard": userData.HardCount,
