@@ -222,7 +222,8 @@ async function getProgress(userId) {
             "easy": userData.EasyCount,
             "medium": userData.MediumCount,
             "hard": userData.HardCount,
-            "latestProblem": latestProblem
+            "latestProblem": latestProblem,
+            "problems": problems    // Send all problems in the event the user requests for it
         }
 
         return buildResponse(200, progress);
