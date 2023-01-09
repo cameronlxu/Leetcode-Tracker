@@ -6,6 +6,7 @@ AWS.config.update({
 
 const DYANMODB = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = "leetcode_tracker";
+const CREATE_PATH = '/create';
 const COMPLETE_PATH = '/complete';
 const PROGRESS_PATH = '/progress';
 const RANKING_PATH = '/ranking';
@@ -27,8 +28,8 @@ exports.handler = async function(event) {
         case event.httpMethod === 'GET' && event.path === HEALTH_PATH:
             response = buildResponse(200);
             break;
-        case event.httpMethod === 'POST' && event.path === COMPLETE_PATH:
-            response = await createUser(JSON.parse(event.body));
+        case event.httpMethod === 'POST' && event.path === CREATE_PATH:
+            response = await createUser(event.queryStringParameters.userId);
             break;
         case event.httpMethod === 'PATCH' && event.path === COMPLETE_PATH:
             response = await updateUser(JSON.parse(event.body));
@@ -47,14 +48,7 @@ exports.handler = async function(event) {
     return response;
 }
 
-async function createUser(requestBody) {
-    const userId = requestBody['userId'];
-    const URL = requestBody['link'];
-
-    /**
-     * Setup the new user object with the completed problem inside the 'problems' array
-     */
-    // 1. Create the newUser object to add to DyanmoDB
+async function createUser(userId) {
     let newUser = {
         userId: userId,
         problems: [],
@@ -64,34 +58,7 @@ async function createUser(requestBody) {
         TotalCount: 0
     }
 
-    // 2. Create the problemObj to append to 'problems'
-    problemObj.link = URL;
-    problemObj.date = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
-
-    await getDifficulty(URL).then((difficulty) => {
-        problemObj.difficulty = difficulty;
-        newUser.problems.push(problemObj);
-        newUser.TotalCount = 1;
-
-        // Set first count of difficulty category
-        switch (difficulty) {
-            case 'Easy':
-                newUser.EasyCount = 1;
-                break;
-            case 'Medium':
-                newUser.MediumCount = 1;
-                break;
-            case 'Hard':
-                newUser.HardCount = 1;
-                break;
-            default:
-                break;
-        }
-    });
-
-    /**
-     * Add to DynamoDB
-     */
+    // Add to DynamoDB
     const params = {
         TableName: TABLE_NAME,
         Item: newUser
