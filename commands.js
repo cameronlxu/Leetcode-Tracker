@@ -80,3 +80,9 @@ export const CHALLENGE_COMMAND = {
   ],
   type: 1,
 };
+
+export const CREATE_COMMAND = {
+  name: 'create',
+  description: 'Create an account for Leetcode Tracker',
+  type: 1
+}

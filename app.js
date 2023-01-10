@@ -12,6 +12,7 @@ import { getShuffledOptions, getResult } from './game.js';
 import {
   CHALLENGE_COMMAND,
   TEST_COMMAND,
+  CREATE_COMMAND,
   HasGuildCommands,
 } from './commands.js';
 
@@ -90,6 +91,21 @@ app.post('/interactions', async function (req, res) {
           ],
         },
       });
+    }
+
+    if (name === 'create' && id) {
+      const userId = req.body.member.user.id;
+      const username = req.body.member.user.username;
+
+      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/create?userId=${userId}`, { method: 'POST' })
+        .then(() => {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: `✅ Account Successfuly Created for ${username}. Time to leetcode! 👨‍💻👩‍💻`,
+            },
+          })
+        });
     }
   }
 
@@ -182,5 +198,6 @@ app.listen(PORT, () => {
   HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, [
     TEST_COMMAND,
     CHALLENGE_COMMAND,
+    CREATE_COMMAND,
   ]);
 });
