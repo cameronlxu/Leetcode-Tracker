@@ -13,6 +13,7 @@ import {
   CHALLENGE_COMMAND,
   TEST_COMMAND,
   CREATE_COMMAND,
+  COMPLETE_COMMAND,
   HasGuildCommands,
 } from './commands.js';
 
@@ -102,9 +103,37 @@ app.post('/interactions', async function (req, res) {
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
-              content: `✅ Account Successfuly Created for ${username}. Time to leetcode! 👨‍💻👩‍💻`,
+              content: `✅ Account Successfuly Created for <@${userId}>. Time to leetcode! 👨‍💻👩‍💻`,
             },
           })
+        });
+    }
+
+    if (name === 'complete' && id) {
+      const userId = req.body.member.user.id;
+      const username = req.body.member.user.username;
+      const problem_url = req.body.data.options[0].value;
+
+      const problemObj = {
+        userId: userId,
+        link: problem_url
+      }
+
+      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/complete`, {
+        method: 'PATCH',
+        body: JSON.stringify(problemObj)
+      })
+        .then(() => {
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: `✅  Problem Link Submitted. Great job <@${userId}>!\n\n❓  Problem Completed: ${problem_url}\n\n📅  Date: ${new Date().toLocaleString()}
+              `
+            },
+          })
+        })
+        .catch((err) => {
+          console.log('/COMPLETE error: ', err);
         });
     }
   }
@@ -199,5 +228,6 @@ app.listen(PORT, () => {
     TEST_COMMAND,
     CHALLENGE_COMMAND,
     CREATE_COMMAND,
+    COMPLETE_COMMAND,
   ]);
 });

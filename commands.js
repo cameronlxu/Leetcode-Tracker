@@ -86,3 +86,17 @@ export const CREATE_COMMAND = {
   description: 'Create an account for Leetcode Tracker',
   type: 1
 }
+
+export const COMPLETE_COMMAND = {
+  name: 'complete',
+  description: 'Completed a leetcode problem? Insert the problem link to submit your completion',
+  options: [
+    {
+      type: 3,
+      name: 'link',
+      description: 'Link to Leetcode Problem',
+      required: true
+    },
+  ],
+  type: 1
+}
