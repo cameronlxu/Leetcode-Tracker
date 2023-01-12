@@ -100,3 +100,20 @@ export const COMPLETE_COMMAND = {
   ],
   type: 1
 }
+
+export const PROGRESS_COMMAND = {
+  name: 'progress',
+  description: 'Get your leetcode progress so far',
+  options: [
+    {
+      name: 'stats',
+      description: 'View your overall leetcode-tracker stats',
+      type: 1
+    },
+    {
+      name: 'list',
+      description: 'Show the list of problems you have completed in chronological order',
+      type: 1
+    }
+  ]
+}

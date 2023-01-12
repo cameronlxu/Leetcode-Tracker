@@ -7,13 +7,14 @@ import {
   MessageComponentTypes,
   ButtonStyleTypes,
 } from 'discord-interactions';
-import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest } from './utils.js';
+import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest, getProgressStats, getProgressList } from './utils.js';
 import { getShuffledOptions, getResult } from './game.js';
 import {
   CHALLENGE_COMMAND,
   TEST_COMMAND,
   CREATE_COMMAND,
   COMPLETE_COMMAND,
+  PROGRESS_COMMAND,
   HasGuildCommands,
 } from './commands.js';
 
@@ -136,6 +137,48 @@ app.post('/interactions', async function (req, res) {
           console.log('/COMPLETE error: ', err);
         });
     }
+
+    if (name === 'progress') {
+      const userId = req.body.member.user.id;
+      const option = data.options[0].name;
+      
+      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/progress?userId=${userId}`)
+        .then((response) => response.json())
+        .then((userData) => {
+          /**
+           * Find the difference in days from the latest problem to today
+           * 
+           * Source: https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+           */
+          // The date looks like 1/12/23, 12:00:01PM
+          const latestDate = new Date(userData.latestProblem.date.split(',')[0]);
+
+          // This is pretty ugly but it works to be able to use getTime(). It looks like --> new Date("1/12/23")
+          const currentDate = new Date(new Date().toLocaleDateString());
+
+          const diff_in_time = currentDate.getTime() - latestDate.getTime();
+          const diff_in_days = diff_in_time / (1000 * 3600 * 24);
+          
+          /**
+           * Depending on the subcommand selection provide different content
+           * - /progress stats
+           * - /progress list 
+           */ 
+          let content;
+          if (option === 'stats') {
+            content = getProgressStats(userId, userData, diff_in_days);
+          } else if (option === 'list') {
+            content = getProgressList(userId, userData.problems);
+          }
+
+          return res.send({
+            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+            data: {
+              content: content
+            },
+          });
+        })
+    }
   }
 
   /**
@@ -229,5 +272,6 @@ app.listen(PORT, () => {
     CHALLENGE_COMMAND,
     CREATE_COMMAND,
     COMPLETE_COMMAND,
+    PROGRESS_COMMAND,
   ]);
 });

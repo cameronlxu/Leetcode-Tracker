@@ -48,3 +48,80 @@ export function getRandomEmoji() {
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function getProgressStats(userId, data) {
+  /**
+   * Find the difference in days from the latest problem to today
+   * 
+   * Source: https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
+   */
+  // The date looks like 1/12/23, 12:00:01PM
+  const latestDate = new Date(userData.latestProblem.date.split(',')[0]);
+
+  // This is pretty ugly but it works to be able to use getTime(). It looks like --> new Date("1/12/23")
+  const currentDate = new Date(new Date().toLocaleDateString());
+
+  // Get differences in time/days
+  const diff_in_time = currentDate.getTime() - latestDate.getTime();
+  const diff_in_days = diff_in_time / (1000 * 3600 * 24);
+
+  //Compile data to produce the content to show the user 
+  const stats = `Progress Stats for User: <@${userId}> as of - ${new Date().toLocaleString()}\n`
+              + `__**Problems Completed**__\n`
+              + `📚 Total:  ${data.total}\n`
+              + `📗 Easy:   ${data.easy}\n`
+              + `📒 Medium: ${data.medium}\n`
+              + `📕 Hard:   ${data.hard}\n\n`
+              + `__**Latest Problem**__\n`
+              + `🔗 Link: <${data.latestProblem.link}>\n`
+              + `⭐ Difficulty: ${data.latestProblem.difficulty}\n`
+              + `🗓️ Date: ${data.latestProblem.date}\n`
+              + `🚀 Days since completion: ${diff_in_days} days`;
+
+  return stats;
+}
+
+export function getProgressList(userId, problems) {
+  let easyProblems = [];
+  let mediumProblems = [];
+  let hardProblems = [];
+
+  // Separate Completed Problems by Difficulty
+  problems.map((problem) => {
+    switch (problem.difficulty) {
+      case 'Easy':
+        easyProblems.push(problem);
+        break;
+      case 'Medium':
+        mediumProblems.push(problem);
+        break;
+      case 'Hard':
+        hardProblems.push(problem);
+        break;
+    }
+  });
+
+  // Reusable function for the Easy/Medium/Hard problem lists
+  const printProblems = (problems) => {
+    if (problems.length === 0) {
+      return '🪹';  // Empty Nest, I thought it looked pretty cool
+    }
+
+    // Wrapping links in <{link}> removes the embed for the link (aka the preview)
+      // problem.date --> "1/21/23, 4:06:51 PM"
+    return `${problems.map((problem) => `✔️ ${problem.date.split(',')[0]} - <${problem.link}>\n`).join('')}` // Ex. 1/21/23 - {link}
+  }
+
+  // Progress List Content
+  const content = `Progress Stats for User: <@${userId}> as of - ${new Date().toLocaleString()}\n`
+                + `__**List of Problems Completed**__\n`
+                + "📗 ***Easy***:\n"
+                + printProblems(easyProblems)
+                + "\n📒 ***Medium***:\n"
+                + printProblems(mediumProblems)
+                + "\n📕 ***Hard***:\n"
+                + printProblems(hardProblems)
+; 
+ 
+  return content;
+}
