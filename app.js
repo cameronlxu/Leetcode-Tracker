@@ -7,7 +7,7 @@ import {
   MessageComponentTypes,
   ButtonStyleTypes,
 } from 'discord-interactions';
-import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest, getProgressStats, getProgressList } from './utils.js';
+import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest, getProgressStats, getProgressList, getRanking } from './utils.js';
 import { getShuffledOptions, getResult } from './game.js';
 import {
   CHALLENGE_COMMAND,
@@ -15,6 +15,7 @@ import {
   CREATE_COMMAND,
   COMPLETE_COMMAND,
   PROGRESS_COMMAND,
+  RANKING_COMMAND,
   HasGuildCommands,
 } from './commands.js';
 
@@ -99,7 +100,7 @@ app.post('/interactions', async function (req, res) {
       const userId = req.body.member.user.id;
       const username = req.body.member.user.username;
 
-      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/create?userId=${userId}`, { method: 'POST' })
+      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/create?userId=${userId}&username=${username}`, { method: 'POST' })
         .then(() => {
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
@@ -144,21 +145,7 @@ app.post('/interactions', async function (req, res) {
       
       fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/progress?userId=${userId}`)
         .then((response) => response.json())
-        .then((userData) => {
-          /**
-           * Find the difference in days from the latest problem to today
-           * 
-           * Source: https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
-           */
-          // The date looks like 1/12/23, 12:00:01PM
-          const latestDate = new Date(userData.latestProblem.date.split(',')[0]);
-
-          // This is pretty ugly but it works to be able to use getTime(). It looks like --> new Date("1/12/23")
-          const currentDate = new Date(new Date().toLocaleDateString());
-
-          const diff_in_time = currentDate.getTime() - latestDate.getTime();
-          const diff_in_days = diff_in_time / (1000 * 3600 * 24);
-          
+        .then((userData) => {          
           /**
            * Depending on the subcommand selection provide different content
            * - /progress stats
@@ -166,7 +153,7 @@ app.post('/interactions', async function (req, res) {
            */ 
           let content;
           if (option === 'stats') {
-            content = getProgressStats(userId, userData, diff_in_days);
+            content = getProgressStats(userId, userData);
           } else if (option === 'list') {
             content = getProgressList(userId, userData.problems);
           }
@@ -178,6 +165,24 @@ app.post('/interactions', async function (req, res) {
             },
           });
         })
+    }
+
+    if (name === 'ranking') {
+      const option = data.options[0].name;
+
+      // Capitlize the first letter
+      const capitalizedOption = option.charAt(0).toUpperCase() + option.slice(1);
+      
+      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/ranking?difficulty=${capitalizedOption}`)
+      .then((response) => response.json())
+      .then((rankData) => {
+        return res.send({
+          type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+          data: {
+            content: getRanking(capitalizedOption, rankData)
+          },
+        });
+      });
     }
   }
 
@@ -273,5 +278,6 @@ app.listen(PORT, () => {
     CREATE_COMMAND,
     COMPLETE_COMMAND,
     PROGRESS_COMMAND,
+    RANKING_COMMAND
   ]);
 });

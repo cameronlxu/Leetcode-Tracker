@@ -56,14 +56,19 @@ export function getProgressStats(userId, data) {
    * Source: https://www.geeksforgeeks.org/how-to-calculate-the-number-of-days-between-two-dates-in-javascript/
    */
   // The date looks like 1/12/23, 12:00:01PM
-  const latestDate = new Date(userData.latestProblem.date.split(',')[0]);
+  let diff_in_days = 0;
 
-  // This is pretty ugly but it works to be able to use getTime(). It looks like --> new Date("1/12/23")
-  const currentDate = new Date(new Date().toLocaleDateString());
+  // No need to find the latest problem if no problems have been completed. Else find latest problem
+  if (data.problems.length !== 0) {
+    const latestDate = new Date(data.latestProblem.date.split(',')[0]);
 
-  // Get differences in time/days
-  const diff_in_time = currentDate.getTime() - latestDate.getTime();
-  const diff_in_days = diff_in_time / (1000 * 3600 * 24);
+    // This is pretty ugly but it works to be able to use getTime(). It looks like --> new Date("1/12/23")
+    const currentDate = new Date(new Date().toLocaleDateString());
+
+    // Get differences in time/days
+    const diff_in_time = currentDate.getTime() - latestDate.getTime();
+    diff_in_days = diff_in_time / (1000 * 3600 * 24);
+  }
 
   //Compile data to produce the content to show the user 
   const stats = `Progress Stats for User: <@${userId}> as of - ${new Date().toLocaleString()}\n`
@@ -123,5 +128,23 @@ export function getProgressList(userId, problems) {
                 + printProblems(hardProblems)
 ; 
  
+  return content;
+}
+
+export function getRanking(option, rankData) {
+  const printRank = (rank) => {
+    if (rankData[rank] == null) {
+      return '🪹 : 🪹';
+    }
+
+    return `**${rankData[rank].username}** : ${rankData[rank][option + "Count"]}\n`
+  }
+
+  const content = `__***${option}* Leaderboard (${new Date().toLocaleString()})**__\n`
+                + `🥇 ${printRank('1')}`
+                + `🥈 ${printRank('2')}`
+                + `🥉 ${printRank('3')}`
+  ;
+  
   return content;
 }

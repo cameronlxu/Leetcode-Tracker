@@ -117,3 +117,30 @@ export const PROGRESS_COMMAND = {
     }
   ]
 }
+
+export const RANKING_COMMAND = {
+  name: 'ranking',
+  description: 'Rankings amongst leetcode tracker users based on a certain difficulty category',
+  options: [
+    {
+      name: 'total',
+      description: 'Total problems completed ranking',
+      type: 1
+    },
+    {
+      name: 'easy',
+      description: 'Easy problems completed ranking',
+      type: 1
+    },
+    {
+      name: 'medium',
+      description: 'Medium problems completed ranking',
+      type: 1
+    },
+    {
+      name: 'hard',
+      description: 'Hard problems completed ranking',
+      type: 1
+    }
+  ]
+}
