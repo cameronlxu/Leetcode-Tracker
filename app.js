@@ -101,11 +101,21 @@ app.post('/interactions', async function (req, res) {
       const username = req.body.member.user.username;
 
       fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/create?userId=${userId}&username=${username}`, { method: 'POST' })
-        .then(() => {
+        .then((response) => response.json())
+        .then((createRes) => {
+          const successMsg = `✅ Account Successfuly Created for <@${userId}>. Time to leetcode! 👨‍💻👩‍💻`;
+          const userExistsMsg = `❌ You already have an account <@${userId}>!`;
+
+          // If user already exists send the user exists msg, else show success msg
+          const content = createRes.error === 'User Already Exists'
+            ? userExistsMsg
+            : successMsg
+          ;
+
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
-              content: `✅ Account Successfuly Created for <@${userId}>. Time to leetcode! 👨‍💻👩‍💻`,
+              content: content
             },
           })
         });
