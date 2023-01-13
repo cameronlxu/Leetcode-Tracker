@@ -55,7 +55,11 @@ async function createUser(userId, username) {
     // Add to DynamoDB
     const params = {
         TableName: TABLE_NAME,
-        Item: newUser
+        Item: newUser,
+        Key: {
+            'userId': userId,
+        },
+        ConditionExpression: `attribute_not_exists(userId)`
     }
     return await DYANMODB.put(params).promise().then(() => {
         const body = {
@@ -65,13 +69,18 @@ async function createUser(userId, username) {
         }
         return buildResponse(200, body);
     }, (error) => {
-        console.error("CREATEUSER: Could not create user! : \n", error);
+        // If the user already exists return the 400 Bad Request error
+        if (error.name === 'ConditionalCheckFailedException') {
+            return buildResponse(400, { error: 'User Already Exists' });
+        } else {
+            console.error("CREATEUSER: Could not create user! : \n", error);
+        }
     });
 }
 
 async function updateUser(requestBody) {
     const userId = requestBody['userId'];
-    const URL = requestBody['link'];
+    const URL = getDefaultProblem(requestBody['link']);
 
     /**
      * Setup problemObj with userId, URL, & difficulty
@@ -286,4 +295,33 @@ function getLatestProblem(problems) {
     });
 
     return latestProblem;
+}
+
+function getDefaultProblem(url) {
+    /**
+     * The purpose of this function is to get the "default link". I didn't want to find the regex for it. Ex:
+     * 
+     * Default:     https://leetcode.com/problems/two-sum/
+     * Not Default: https://leetcode.com/problems/two-sum/discussion/
+     */
+
+    /**
+     * splitBySlash looks like:
+     * 
+     * [
+        'https:',
+        '',
+        'leetcode.com',
+        'problems',
+        'two-sum',
+        'discussion',   // Assuming there is an extra tag
+        ''
+     * ]
+     */
+    const splitBySlash = url.split('/');
+
+    // Combined together: https: + "//" + leetcode.com + "/" + problems + "/" + two-sum + "/"
+    let defaultUrl = splitBySlash[0] + "//" + splitBySlash[2] + "/" + splitBySlash[3] + "/" + splitBySlash[4] + "/";
+
+    return defaultUrl;
 }
