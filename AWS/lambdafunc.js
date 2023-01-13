@@ -1,8 +1,8 @@
 const AWS = require("aws-sdk");
-var XMLHttpRequest = require('xhr2');
 AWS.config.update({ 
     region: "us-west-1"
 });
+const { buildResponse, scanDynamo, getDifficulty, getLatestProblem, getDefaultLink } = require('./utils.js');
 
 const DYANMODB = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = "leetcode_tracker";
@@ -31,7 +31,7 @@ exports.handler = async function(event) {
             response = await getProgress(event.queryStringParameters.userId);
             break;
         case event.httpMethod === 'GET' && event.path === RANKING_PATH:
-            response = await getRanking(event.queryStringParameters.userId, event.queryStringParameters.difficulty);
+            response = await getRanking(event.queryStringParameters.difficulty);
             break;
         case event.httpMethod === 'DELETE' && event.path === DELETE_PATH:
             response = await deleteUserData(event.queryStringParameters.userId);
@@ -52,11 +52,15 @@ async function createUser(userId, username) {
         TotalCount: 0
     }
 
-    // Add to DynamoDB
     const params = {
         TableName: TABLE_NAME,
-        Item: newUser
+        Item: newUser,
+        Key: {
+            'userId': userId,
+        },
+        ConditionExpression: `attribute_not_exists(userId)`
     }
+    
     return await DYANMODB.put(params).promise().then(() => {
         const body = {
             Operation: 'SAVE',
@@ -65,17 +69,19 @@ async function createUser(userId, username) {
         }
         return buildResponse(200, body);
     }, (error) => {
-        console.error("CREATEUSER: Could not create user! : \n", error);
+        // If the user already exists return the 400 Bad Request error
+        if (error.name === 'ConditionalCheckFailedException') {
+            return buildResponse(400, { error: 'User Already Exists' });
+        } else {
+            console.error("CREATEUSER: Could not create user! : \n", error);
+        }
     });
 }
 
 async function updateUser(requestBody) {
     const userId = requestBody['userId'];
-    const URL = requestBody['link'];
+    const URL = getDefaultLink(requestBody['link']);
 
-    /**
-     * Setup problemObj with userId, URL, & difficulty
-     */
     let problemObj = {
         link: URL,
         date: new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
@@ -86,7 +92,7 @@ async function updateUser(requestBody) {
      * Prepare what to update in DynamoDB & send the update
      */
     const difficultyCount = `${problemObj.difficulty}Count`;
-    params = {
+    let params = {
         TableName: TABLE_NAME,
         Key: {
             'userId': userId,
@@ -185,9 +191,10 @@ async function getRanking(difficulty) {
     const params = {
         TableName: TABLE_NAME
     }
-  
-    const allUsers = await scanDynamo(params, []);
-    const top3 = allUsers.sort((a, b) => b[category] - a[category]); // Sort in Descending Order
+    
+    const top3 = await scanDynamo(DYANMODB, params, []).then((allUsers) => {
+        return allUsers.sort((a, b) => b[category] - a[category]);  // Sort in Descending Order
+    });
 
     const ranking = {
         "1": top3[0],
@@ -196,89 +203,4 @@ async function getRanking(difficulty) {
     }
   
     return buildResponse(200, ranking);
-}
-
-function buildResponse(statusCode, body) {
-    return {
-        statusCode: statusCode,
-        headers: {
-            'Content-Type': 'application/json',
-            "Access-Control-Allow-Headers" : "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
-            "Access-Control-Allow-Methods" : "OPTIONS,POST,PUT,GET,DELETE,PATCH",
-            "Access-Control-Allow-Credentials" : true,
-            "Access-Control-Allow-Origin" : "*",
-            "X-Requested-With" : "*"
-        },
-        body: JSON.stringify(body)
-    }
-}
-
-async function scanDynamo(scanParams, itemArray) {
-    try {
-      const dynamoData = await DYANMODB.scan(scanParams).promise();
-      itemArray = itemArray.concat(dynamoData.Items);
-      if (dynamoData.LastEvaluatedKey) {
-        scanParams.ExclusiveStartkey = dynamoData.LastEvaluatedKey;
-        return await scanDynamoRecords(scanParams, itemArray);
-      }
-      return itemArray;
-    } catch(error) {
-      console.error('Scan Error, could not scan! : ', error);
-    }
-}
-
-/**
- * Functions to get the difficulty of a problem given the link
- */
-
-// Source: https://stackoverflow.com/questions/247483/http-get-request-in-javascript 
-function httpGetAsync(URL) {
-  return new Promise((resolve, reject) => {
-    let xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-            resolve(xmlHttp.responseText);
-        }
-    }
-    xmlHttp.open("GET", URL, true); // true for asynchronous 
-    xmlHttp.send(null); 
-  });
-}
-
-async function getDifficulty(URL) {
-    const text = await httpGetAsync(URL);
-
-    // Isolate the value for Difficulty: Easy/Medium/Hard
-    const findDifficulty = text.split('"difficulty"')[1];
-
-    // Remove the rest of the json data
-    const isolateDifficulty = findDifficulty.split(',')[0];
-    
-    // Remove the double quotations & semicolon with regex
-    const difficulty = isolateDifficulty.replace(/['":]+/g, '');
-
-    // Return the difficulty
-    return difficulty;
-}
-
-function getLatestProblem(problems) {
-    // If no problems completed yet return empty nest emoji
-    if (problems.length === 0) {
-        return '🪹';
-    }
-
-    // Start comparing from the zero-th index. Dates can only compare to other dates
-    let latestDate = problems[0].date;
-    problems.map((problem) => {
-        if (problem.date > latestDate) {
-            latestDate = problem.date;
-        }
-    });
-
-    // Since we know the latest date in the problems array, find the problem matching the time
-    const latestProblem = problems.find(problem => {
-        return problem.date === latestDate.toLocaleString()
-    });
-
-    return latestProblem;
 }
