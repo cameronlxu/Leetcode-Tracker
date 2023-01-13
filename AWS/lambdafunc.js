@@ -31,7 +31,7 @@ exports.handler = async function(event) {
             response = await getProgress(event.queryStringParameters.userId);
             break;
         case event.httpMethod === 'GET' && event.path === RANKING_PATH:
-            response = await getRanking(event.queryStringParameters.userId, event.queryStringParameters.difficulty);
+            response = await getRanking(event.queryStringParameters.difficulty);
             break;
         case event.httpMethod === 'DELETE' && event.path === DELETE_PATH:
             response = await deleteUserData(event.queryStringParameters.userId);
@@ -86,7 +86,7 @@ async function updateUser(requestBody) {
      * Prepare what to update in DynamoDB & send the update
      */
     const difficultyCount = `${problemObj.difficulty}Count`;
-    params = {
+    let params = {
         TableName: TABLE_NAME,
         Key: {
             'userId': userId,
@@ -185,9 +185,10 @@ async function getRanking(difficulty) {
     const params = {
         TableName: TABLE_NAME
     }
-  
-    const allUsers = await scanDynamo(params, []);
-    const top3 = allUsers.sort((a, b) => b[category] - a[category]); // Sort in Descending Order
+    
+    const top3 = await scanDynamo(params, []).then((allUsers) => {
+        return allUsers.sort((a, b) => b[category] - a[category]);  // Sort in Descending Order
+    });
 
     const ranking = {
         "1": top3[0],
@@ -219,7 +220,7 @@ async function scanDynamo(scanParams, itemArray) {
       itemArray = itemArray.concat(dynamoData.Items);
       if (dynamoData.LastEvaluatedKey) {
         scanParams.ExclusiveStartkey = dynamoData.LastEvaluatedKey;
-        return await scanDynamoRecords(scanParams, itemArray);
+        return await scanDynamo(scanParams, itemArray);
       }
       return itemArray;
     } catch(error) {
@@ -262,9 +263,13 @@ async function getDifficulty(URL) {
 }
 
 function getLatestProblem(problems) {
-    // If no problems completed yet return empty nest emoji
+    // If no problems completed yet return problem with empty nest emojis
     if (problems.length === 0) {
-        return '🪹';
+        return {
+            'link': '🪹',
+            'date': '🪹',
+            'difficulty': '🪹',
+        }
     }
 
     // Start comparing from the zero-th index. Dates can only compare to other dates
