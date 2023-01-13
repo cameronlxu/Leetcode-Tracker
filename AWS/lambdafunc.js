@@ -13,13 +13,6 @@ const RANKING_PATH = '/ranking';
 const DELETE_PATH = '/delete';
 const HEALTH_PATH = '/health';
 
-// Object used in createUser() & updateUser()
-let problemObj = {
-    link: '',
-    date: new Date().toLocaleDateString(),
-    difficulty: ''
-}
-
 exports.handler = async function(event) {
     console.log('Request event: ', event);
     let response;
@@ -29,7 +22,7 @@ exports.handler = async function(event) {
             response = buildResponse(200);
             break;
         case event.httpMethod === 'POST' && event.path === CREATE_PATH:
-            response = await createUser(event.queryStringParameters.userId);
+            response = await createUser(event.queryStringParameters.userId, event.queryStringParameters.username);
             break;
         case event.httpMethod === 'PATCH' && event.path === COMPLETE_PATH:
             response = await updateUser(JSON.parse(event.body));
@@ -48,9 +41,10 @@ exports.handler = async function(event) {
     return response;
 }
 
-async function createUser(userId) {
+async function createUser(userId, username) {
     let newUser = {
         userId: userId,
+        username: username,
         problems: [],
         EasyCount: 0,
         MediumCount: 0,
@@ -82,12 +76,11 @@ async function updateUser(requestBody) {
     /**
      * Setup problemObj with userId, URL, & difficulty
      */
-    problemObj.link = URL;
-    problemObj.date = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
-
-    await getDifficulty(URL).then((difficulty) => {
-        problemObj.difficulty = difficulty;
-    });
+    let problemObj = {
+        link: URL,
+        date: new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }),
+        difficulty: await getDifficulty(URL)
+    }
     
     /**
      * Prepare what to update in DynamoDB & send the update
@@ -149,7 +142,8 @@ async function getProgress(userId) {
          * Example Success Response
          * 
          * {
-                "userId": "cameronlxu",
+                "userId": "12345",
+                "username": "cameronlxu"
                 "problems": [
                     {
                         "link": "https://leetcode.com/problems/two-sum/",
@@ -171,26 +165,13 @@ async function getProgress(userId) {
         const userData = response.Items[0];     // index 0 to return the JSON format, not the array
         const problems = userData.problems;
 
-        // Find Latest (a.k.a. maximum) Date
-        let latestDate = problems[0].date;  // start comparing from the zero-th index. Dates can only compare to other dates
-        problems.map((problem) => {
-            if (problem.date > latestDate) {
-                latestDate = problem.date;
-            }
-        });
-
-        // Since we know the latest date in the problems array, find the problem matching the time
-        const latestProblem = problems.find(problem => {
-            return problem.date === latestDate.toLocaleString()
-        });
-
         const progress = {
             "total": userData.TotalCount,
             "easy": userData.EasyCount,
             "medium": userData.MediumCount,
             "hard": userData.HardCount,
-            "latestProblem": latestProblem,
-            "problems": problems    // Send all problems in the event the user requests for it
+            "latestProblem": getLatestProblem(problems),
+            "problems": problems    // Send all problems in the event the user requests for it (/progress list)
         }
 
         return buildResponse(200, progress);
@@ -199,7 +180,7 @@ async function getProgress(userId) {
     });
 }
 
-async function getRanking(userId, difficulty) {
+async function getRanking(difficulty) {
     const category = `${difficulty}Count`; // EasyCount, MediumCount, HardCount, TotalCount
     const params = {
         TableName: TABLE_NAME
@@ -278,4 +259,26 @@ async function getDifficulty(URL) {
 
     // Return the difficulty
     return difficulty;
+}
+
+function getLatestProblem(problems) {
+    // If no problems completed yet return empty nest emoji
+    if (problems.length === 0) {
+        return '🪹';
+    }
+
+    // Start comparing from the zero-th index. Dates can only compare to other dates
+    let latestDate = problems[0].date;
+    problems.map((problem) => {
+        if (problem.date > latestDate) {
+            latestDate = problem.date;
+        }
+    });
+
+    // Since we know the latest date in the problems array, find the problem matching the time
+    const latestProblem = problems.find(problem => {
+        return problem.date === latestDate.toLocaleString()
+    });
+
+    return latestProblem;
 }
