@@ -136,11 +136,15 @@ app.post('/interactions', async function (req, res) {
         body: JSON.stringify(problemObj)
       })
         .then(() => {
+          const content = `✅  Problem Link Submitted. Great job <@${userId}>!\n\n` + 
+                          `❓  Problem Completed: <${problem_url}>\n\n` + 
+                          `📅  Date: ${new Date().toLocaleString()}`
+          ;
+
           return res.send({
             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
             data: {
-              content: `✅  Problem Link Submitted. Great job <@${userId}>!\n\n❓  Problem Completed: ${problem_url}\n\n📅  Date: ${new Date().toLocaleString()}
-              `
+              content: content    
             },
           })
         })
