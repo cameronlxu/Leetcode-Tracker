@@ -80,3 +80,67 @@ export const CHALLENGE_COMMAND = {
   ],
   type: 1,
 };
+
+export const CREATE_COMMAND = {
+  name: 'create',
+  description: 'Create an account for Leetcode Tracker',
+  type: 1
+}
+
+export const COMPLETE_COMMAND = {
+  name: 'complete',
+  description: 'Completed a leetcode problem? Insert the problem link to submit your completion',
+  options: [
+    {
+      type: 3,
+      name: 'link',
+      description: 'Link to Leetcode Problem',
+      required: true
+    },
+  ],
+  type: 1
+}
+
+export const PROGRESS_COMMAND = {
+  name: 'progress',
+  description: 'Get your leetcode progress so far',
+  options: [
+    {
+      name: 'stats',
+      description: 'View your overall leetcode-tracker stats',
+      type: 1
+    },
+    {
+      name: 'list',
+      description: 'Show the list of problems you have completed in chronological order',
+      type: 1
+    }
+  ]
+}
+
+export const RANKING_COMMAND = {
+  name: 'ranking',
+  description: 'Rankings amongst leetcode tracker users based on a certain difficulty category',
+  options: [
+    {
+      name: 'total',
+      description: 'Total problems completed ranking',
+      type: 1
+    },
+    {
+      name: 'easy',
+      description: 'Easy problems completed ranking',
+      type: 1
+    },
+    {
+      name: 'medium',
+      description: 'Medium problems completed ranking',
+      type: 1
+    },
+    {
+      name: 'hard',
+      description: 'Hard problems completed ranking',
+      type: 1
+    }
+  ]
+}
