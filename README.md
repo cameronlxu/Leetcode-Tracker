@@ -9,15 +9,18 @@ The main focus is allowing the users to input the link of the completed problem 
 On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [glitch](https://glitch.com). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data hosted in the NoSQL database. 
 
 ### Current Requirements
-- [x] User can create an account
-- [x] User can update the db with the newly completed problem
+- [x] User can create an account one time
+- [x] User can input the link of the newly completed problem which will add to their problems completed
 - [x] User can retrieve their data in a statistical overview or problem list layout
 - [x] User can view the rankings (problem count) based on a difficulty: Easy, Medium, Hard, Total
 
 ### Future TODO List
+- [ ] /help command to show the user what commands are available to them
 - [ ] User can start/end a session that other users can join, which will also have it's own ranking while the session is active
     - Problems completed here will also contribute to the user's overall progress
-- [ ] Improve the bot response UI by instead of replying to user slash commands, responsd with an [embed](https://discordjs.guide/popular-topics/embeds.html#embed-preview)
+- [ ] Improve the bot response UI 
+    - [ ] Instead of replying to user slash commands, respond with an [embed](https://discordjs.guide/popular-topics/embeds.html#embed-preview)
+    - [ ] Consolidate the /ranking command to where a user has to pick a difficulty of what ranking to look at
 
 ----------
 
