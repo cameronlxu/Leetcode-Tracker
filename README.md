@@ -8,9 +8,16 @@ The main focus is allowing the users to input the link of the completed problem 
 
 On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [glitch](https://glitch.com). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data hosted in the NoSQL database. 
 
-## 🖥️ High Level Codeflow Architecture 
+### Current Requirements
+- [x] User can create an account
+- [x] User can update the db with the newly completed problem
+- [x] User can retrieve their data in a statistical overview or problem list layout
+- [x] User can view the rankings (problem count) based on a difficulty: Easy, Medium, Hard, Total
 
-![Discord Bot](https://user-images.githubusercontent.com/12592121/212503951-d2765288-feed-47e8-85e1-ec5eefc07f4b.png)
+### Future TODO List
+- [ ] User can start/end a session that other users can join, which will also have it's own ranking while the session is active
+    - Problems completed here will also contribute to the user's overall progress
+- [ ] Improve the bot response UI by instead of replying to user slash commands, responsd with an [embed](https://discordjs.guide/popular-topics/embeds.html#embed-preview)
 
 ----------
 
@@ -62,6 +69,10 @@ On the technical side, the discord bot uses JavaScript on the front end to inter
 ![bot response for rankings](https://user-images.githubusercontent.com/12592121/212461591-47fcf41d-44e1-4858-83ee-d05388c01347.png)
 
 ----------
+
+## 🖥️ High Level Codeflow Architecture 
+
+![Discord Bot](https://user-images.githubusercontent.com/12592121/212503951-d2765288-feed-47e8-85e1-ec5eefc07f4b.png)
 
 ## Installation
 
