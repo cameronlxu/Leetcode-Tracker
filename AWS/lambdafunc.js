@@ -242,9 +242,9 @@ async function removeDuplicateProblems(userId, pk) {
      * Remove Duplicate Algorithm (& keep earliest completion)
      * 
      * 1. Create a new output array
-     * 2. Iterate through problems array from start to end
-     * 3. Keep track of each problem link, 
-     * 4. If it's a new link then we can assign to linkTracker & add object to output array
+     * 2. Iterate through problems array from start to end (newest problem is appended to the end of the array)
+     * 3. Keep note of each problem link
+     * 4. If it's a new link then we assign to linkTracker & add the problem object to output array
      * 5. If the link is the same as the linkTracker value, skip & continue onto the next problem
      */
     let noDuplicateProblems = [];
