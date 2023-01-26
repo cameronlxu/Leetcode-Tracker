@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import fetch from 'node-fetch';
 import { InteractionType, InteractionResponseType, InteractionResponseFlags } from 'discord-interactions';
 import { 
   VerifyDiscordRequest, 
@@ -49,7 +50,7 @@ app.post('/interactions', async function (req, res) {
       const userId = req.body.member.user.id;
       const username = req.body.member.user.username;
 
-      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/create?userId=${userId}&username=${username}`, { method: 'POST' })
+      fetch(`${process.env.API_LINK}/create?userId=${userId}&username=${username}`, { method: 'POST' })
         .then((response) => response.json())
         .then((createRes) => {
           const successMsg = `✅ Account Successfuly Created for <@${userId}>. Time to leetcode! 👨‍💻👩‍💻`;
@@ -97,7 +98,7 @@ app.post('/interactions', async function (req, res) {
         },
       });
 
-      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/complete`, {
+      fetch(`${process.env.API_LINK}/complete`, {
         method: 'PATCH',
         body: JSON.stringify(problemObj)
       })
@@ -129,7 +130,7 @@ app.post('/interactions', async function (req, res) {
       const userId = req.body.member.user.id;
       const option = data.options[0].name;
       
-      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/progress?userId=${userId}`)
+      fetch(`${process.env.API_LINK}/progress?userId=${userId}`)
         .then((response) => response.json())
         .then((userData) => {          
           /**
@@ -159,7 +160,7 @@ app.post('/interactions', async function (req, res) {
       // Capitlize the first letter
       const capitalizedOption = capitalize(option);
       
-      fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/ranking?difficulty=${capitalizedOption}`)
+      fetch(`${process.env.API_LINK}/ranking?difficulty=${capitalizedOption}`)
       .then((response) => response.json())
       .then((rankData) => {
         return res.send({
