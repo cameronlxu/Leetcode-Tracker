@@ -1,8 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
-import { InteractionType, InteractionResponseType } from 'discord-interactions';
+import { InteractionType, InteractionResponseType, InteractionResponseFlags } from 'discord-interactions';
 import { 
   VerifyDiscordRequest, 
+  DiscordRequest,
   capitalize, 
   getProgressStats, 
   getProgressList, 
@@ -71,7 +72,6 @@ app.post('/interactions', async function (req, res) {
 
     if (name === 'complete' && id) {
       const userId = req.body.member.user.id;
-      const username = req.body.member.user.username;
       const problem_url = req.body.data.options[0].value;
 
       const problemObj = {
@@ -79,21 +79,45 @@ app.post('/interactions', async function (req, res) {
         link: problem_url
       }
 
+      /**
+       * Cold Start Avoidance Workflow
+       * 
+       * 1. Send Ephemeral message to tell user problem is being submitted
+       * 2. Send data to db via PATCH request
+       * 3. Once successful response is received delete the Ephemeral message
+       * 4. Use discord API to post a new message with the success message
+       */
+
+      // Send ephemeral message (responds to user slash command)
+      res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: 'Sending completed problem to db...',
+          flags: InteractionResponseFlags.EPHEMERAL    
+        },
+      });
+
       fetch(`https://uaf0v7vjt8.execute-api.us-west-1.amazonaws.com/prod/complete`, {
         method: 'PATCH',
         body: JSON.stringify(problemObj)
       })
-        .then(() => {
+        .then(async () => {
           const content = `✅  Problem Link Submitted. Great job <@${userId}>!\n\n` + 
                           `❓  Problem Completed: <${problem_url}>\n\n` + 
                           `📅  Date: ${new Date().toLocaleString()}`
           ;
 
-          return res.send({
-            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-            data: {
-              content: content    
-            },
+          // Delete ephemeral message
+          await DiscordRequest(`/webhooks/${req.body.application_id}/${req.body.token}/messages/@original`, {
+            method: 'DELETE',
+          });
+
+          // Send new message with success message
+          await DiscordRequest(`channels/${req.body.channel_id}/messages`, {
+            method: 'POST',
+            body: {
+              content: content
+            }
           })
         })
         .catch((err) => {
