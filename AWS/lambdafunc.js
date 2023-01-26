@@ -2,7 +2,7 @@ const AWS = require("aws-sdk");
 AWS.config.update({ 
     region: "us-west-1"
 });
-const { buildResponse, scanDynamo, getDifficulty, getLatestProblem, getDefaultLink } = require('./utils.js');
+const { buildResponse, scanDynamo, getDifficulty, getLatestProblem, getDefaultLink, privateKey } = require('./utils.js');
 
 const DYANMODB = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = "leetcode_tracker";
@@ -12,6 +12,7 @@ const PROGRESS_PATH = '/progress';
 const RANKING_PATH = '/ranking';
 const DELETE_PATH = '/delete';
 const HEALTH_PATH = '/health';
+const REMOVE_DUPLICATES = '/remove_duplicates';
 
 exports.handler = async function(event) {
     console.log('Request event: ', event);
@@ -35,6 +36,9 @@ exports.handler = async function(event) {
             break;
         case event.httpMethod === 'DELETE' && event.path === DELETE_PATH:
             response = await deleteUserData(event.queryStringParameters.userId);
+            break;
+        case event.httpMethod === 'GET' && event.path === REMOVE_DUPLICATES:
+            response = await removeDuplicateProblems(event.queryStringParameters.userId, event.queryStringParameters.privateKey);
             break;
     }
 
@@ -203,4 +207,81 @@ async function getRanking(difficulty) {
     }
   
     return buildResponse(200, ranking);
+}
+
+async function removeDuplicateProblems(userId, pk) {
+    // Used to only allow developer(s) to access this function
+    if (pk != privateKey) {
+        return buildResponse(401, { Error: "Missing or Incorrect Private Key" });
+    }
+
+    // Get User Data (specifically the problems array)
+    const queryParams = {
+        ExpressionAttributeNames: {
+            "#theUser": "userId"
+        },
+        ExpressionAttributeValues: {
+            ":userId": userId
+        }, 
+        KeyConditionExpression: "#theUser = :userId", 
+        TableName: TABLE_NAME
+    }; 
+
+    let problems;
+
+    await DYANMODB.query(queryParams).promise().then((response) => {
+        console.log(`removeDuplicateProblems query successful for userId: ${userId}`, JSON.stringify(response, null, 2));
+
+        const userData = response.Items[0];     // index 0 to return the JSON format, not the array
+        problems = userData.problems;
+    }, (error) => {
+        console.error("QUERYERROR: Could not query user information! : ", error);
+    });
+
+    /**
+     * Remove Duplicate Algorithm (& keep earliest completion)
+     * 
+     * 1. Create a new output array
+     * 2. Iterate through problems array from start to end
+     * 3. Keep track of each problem link, 
+     * 4. If it's a new link then we can assign to linkTracker & add object to output array
+     * 5. If the link is the same as the linkTracker value, skip & continue onto the next problem
+     */
+    let noDuplicateProblems = [];
+    let linkTracker = "";
+    for (let idx = 0; idx < problems.length; idx++) {
+        if (problems[idx].link !== linkTracker) {
+            noDuplicateProblems.push(problems[idx]);
+            linkTracker = problems[idx].link;
+        }
+    }
+
+    // Update user problem attribute value with new array: noDuplicateProblems
+    let params = {
+        TableName: TABLE_NAME,
+        Key: {
+            'userId': userId,
+        },
+        UpdateExpression: `SET #problems = :newProblems`,
+        ExpressionAttributeNames: {
+            "#problems": "problems"
+        },
+        ExpressionAttributeValues: {
+            ':newProblems': noDuplicateProblems
+        },
+        ReturnValues: 'UPDATED_OLD'
+    }
+    
+    return await DYANMODB.update(params).promise().then((response) => {
+        console.log("Update Information: ", response);
+        const body = {
+            Operation: 'UPDATE',
+            Message: 'SUCCESS',
+            UpdatedAttributes: response,
+            newProblems: noDuplicateProblems
+        }
+        return buildResponse(200, body);
+    }, (error) => {
+        console.error("PATCHERROR: Could not patch user! : ", error);
+    });
 }

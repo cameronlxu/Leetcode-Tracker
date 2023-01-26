@@ -115,3 +115,5 @@ exports.getDefaultLink = (URL) => {
 
     return defaultUrl;
 }
+
+exports.privateKey = "nottherealprivatekey";
