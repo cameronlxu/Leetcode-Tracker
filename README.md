@@ -6,7 +6,7 @@ Leetcode Tracker is Discord Bot that assists users with keeping track of their l
 
 The main focus is allowing the users to input the link of the completed problem and the bot will store that information in a database which can be viewed at a later time. With this, users will to see their current progress - whether a statistical overview or a full view list of all the problems he/she has completed separated by category & chronological order. Lastly to "game-ify" their experience, there is a ranking system that compares against the Total/Easy/Medium/Hard problem count completed amongst all users. 
 
-On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [glitch](https://glitch.com). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data hosted in the NoSQL database. 
+On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [Oracle Cloud Infrastructure Compute Service](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/computeoverview.htm) through a Virtual Machine. The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data hosted in the NoSQL database. 
 
 ### Current Requirements
 - [x] User can create an account one time
@@ -79,7 +79,7 @@ On the technical side, the discord bot uses JavaScript on the front end to inter
 
 ## Installation
 
-Installation is currently unavailable. Leetcode Tracker only exists in my own private server as I am using a free service (glitch) to host it. 
+Installation is currently unavailable.
 
 ## Support
 
