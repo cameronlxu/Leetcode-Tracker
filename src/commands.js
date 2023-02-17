@@ -1,107 +1,86 @@
-import { DiscordRequest } from './utils.js';
+import 'dotenv/config';
+import { REST, Routes } from 'discord.js';
 
-export async function HasGuildCommands(appId, guildId, commands) {
-  if (guildId === '' || appId === '') return;
-
-  commands.forEach((c) => HasGuildCommand(appId, guildId, c));
-}
-
-// Checks for a command
-async function HasGuildCommand(appId, guildId, command) {
-  // API endpoint to get and post guild commands
-  const endpoint = `applications/${appId}/guilds/${guildId}/commands`;
-
-  try {
-    const res = await DiscordRequest(endpoint, { method: 'GET' });
-    const data = await res.json();
-
-    if (data) {
-      const installedNames = data.map((c) => c['name']);
-      // This is just matching on the name, so it's not good for updates
-      if (!installedNames.includes(command['name'])) {
-        console.log(`Installing "${command['name']}"`);
-        InstallGuildCommand(appId, guildId, command);
-      } else {
-        console.log(`"${command['name']}" command already installed`);
+// Command Type #s: https://discord-api-types.dev/api/discord-api-types-v10/enum/ApplicationCommandOptionType
+const commands = [
+  {
+    name: 'ping',
+    description: 'pong!'
+  },
+  // CREATE
+  {
+    name: 'create',
+    description: 'Create an account for Leetcode Tracker',
+  },
+  // COMPLETE
+  {
+    name: 'complete',
+    description: 'Completed a leetcode problem? Insert the problem link to submit your completion',
+    options: [
+      {
+        name: 'link',
+        description: 'Link to Leetcode Problem',
+        type: 3,
+        required: true
+      },
+    ],
+  },
+  // PROGRESS
+  {
+    name: 'progress',
+    description: 'Get your leetcode progress so far',
+    options: [
+      {
+        name: 'stats',
+        description: 'View your overall leetcode-tracker stats',
+        type: 1
+      },
+      {
+        name: 'list',
+        description: 'Show the list of problems you have completed in chronological order',
+        type: 1
       }
-    }
-  } catch (err) {
-    console.error(err);
+    ]
+  },
+  // RANKING
+  {
+    name: 'ranking',
+    description: 'Rankings amongst leetcode tracker users based on a certain difficulty category',
+    options: [
+      {
+        name: 'total',
+        description: 'Total problems completed ranking',
+        type: 1
+      },
+      {
+        name: 'easy',
+        description: 'Easy problems completed ranking',
+        type: 1
+      },
+      {
+        name: 'medium',
+        description: 'Medium problems completed ranking',
+        type: 1
+      },
+      {
+        name: 'hard',
+        description: 'Hard problems completed ranking',
+        type: 1
+      }
+    ]
   }
-}
+];
 
-// Installs a command
-export async function InstallGuildCommand(appId, guildId, command) {
-  // API endpoint to get and post guild commands
-  const endpoint = `applications/${appId}/guilds/${guildId}/commands`;
-  // install command
+const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
+(async () => {
   try {
-    await DiscordRequest(endpoint, { method: 'POST', body: command });
-  } catch (err) {
-    console.error(err);
+    console.log('Started refreshing application (/) commands.');
+
+    await rest.put(Routes.applicationCommands(process.env.APP_ID), { body: commands });
+
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
   }
-}
-
-export const CREATE_COMMAND = {
-  name: 'create',
-  description: 'Create an account for Leetcode Tracker',
-  type: 1
-}
-
-export const COMPLETE_COMMAND = {
-  name: 'complete',
-  description: 'Completed a leetcode problem? Insert the problem link to submit your completion',
-  options: [
-    {
-      type: 3,
-      name: 'link',
-      description: 'Link to Leetcode Problem',
-      required: true
-    },
-  ],
-  type: 1
-}
-
-export const PROGRESS_COMMAND = {
-  name: 'progress',
-  description: 'Get your leetcode progress so far',
-  options: [
-    {
-      name: 'stats',
-      description: 'View your overall leetcode-tracker stats',
-      type: 1
-    },
-    {
-      name: 'list',
-      description: 'Show the list of problems you have completed in chronological order',
-      type: 1
-    }
-  ]
-}
-
-export const RANKING_COMMAND = {
-  name: 'ranking',
-  description: 'Rankings amongst leetcode tracker users based on a certain difficulty category',
-  options: [
-    {
-      name: 'total',
-      description: 'Total problems completed ranking',
-      type: 1
-    },
-    {
-      name: 'easy',
-      description: 'Easy problems completed ranking',
-      type: 1
-    },
-    {
-      name: 'medium',
-      description: 'Medium problems completed ranking',
-      type: 1
-    },
-    {
-      name: 'hard',
-      description: 'Hard problems completed ranking',
-      type: 1
-    }
-  ]
-}
+})();
