@@ -46,18 +46,40 @@ function httpGetAsync(URL) {
 }
 
 exports.getDifficulty = async (URL) => {
-    const text = await httpGetAsync(URL);
-
-    // Isolate the value for Difficulty: Easy/Medium/Hard
-    const findDifficulty = text.split('"difficulty"')[1];
-
-    // Remove the rest of the json data
-    const isolateDifficulty = findDifficulty.split(',')[0];
+    const api_link = 'https://leetcode.com/api/problems/all/';
     
-    // Remove the double quotations & semicolon with regex
-    const difficulty = isolateDifficulty.replace(/['":]+/g, '');
-
-    // Return the difficulty
+    // Get text from link
+    const text = await httpGetAsync(api_link);
+    
+    // Convert string into a JSON object
+    const leetcodeInfo = JSON.parse(text);
+    
+    // Look at all problems (held within the stat_status_pairs subobject)
+    const problems = leetcodeInfo.stat_status_pairs;
+    
+    // Filter for the problem inputted
+    const result = problems.filter(problem => {
+        // question__title_slug is the end of the leetcode link 
+        //      e.g. "two-sum"
+        return problem.stat.question__title_slug === URL.split('/')[4]; // End of Link
+    })[0];
+    
+    // Determine the difficulty in words and return
+    const difficultyLevel = result.difficulty.level;
+    let difficulty;
+    
+    switch(difficultyLevel) {
+        case 1:
+            difficulty = "Easy";
+            break;
+        case 2:
+            difficulty = "Medium";
+            break;
+        case 3:
+            difficulty = "Hard";
+            break;
+    }
+    
     return difficulty;
 }
 
