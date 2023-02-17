@@ -3,10 +3,6 @@ import { REST, Routes } from 'discord.js';
 
 // Command Type #s: https://discord-api-types.dev/api/discord-api-types-v10/enum/ApplicationCommandOptionType
 const commands = [
-  {
-    name: 'ping',
-    description: 'pong!'
-  },
   // CREATE
   {
     name: 'create',
