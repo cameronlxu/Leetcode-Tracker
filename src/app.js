@@ -30,7 +30,8 @@ client.on('interactionCreate', async interaction => {
         ;
 
         return interaction.reply({
-          content: content
+          content: content,
+          ephemeral: content === userExistsMsg ? true : false // If user exists, make reply ephemeral
         })
       }
     );
