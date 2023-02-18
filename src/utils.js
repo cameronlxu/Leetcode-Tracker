@@ -140,8 +140,7 @@ export function getRanking(option, rankData) {
     return `**${rankData[rank].username}** : ${rankData[rank][option + "Count"]}\n`
   }
 
-  const content = `__***${option}* Leaderboard (${new Date().toLocaleString()})**__\n`
-                + `🥇 ${printRank('1')}`
+  const content = `🥇 ${printRank('1')}`
                 + `🥈 ${printRank('2')}`
                 + `🥉 ${printRank('3')}`
   ;

@@ -98,7 +98,13 @@ client.on('interactionCreate', async interaction => {
     .then((response) => response.json())
     .then((rankData) => {
       return interaction.reply({
-        content: getRanking(capitalizedOption, rankData)
+        embeds: [
+          {
+            title: `__***${option.toUpperCase()}* Leaderboard (${new Date().toLocaleString()})**__`,
+            description: getRanking(capitalizedOption, rankData),
+            color: 0x2ac331
+          }
+        ]
       });
     });
   }
