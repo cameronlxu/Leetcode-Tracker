@@ -49,15 +49,56 @@ client.on('interactionCreate', async interaction => {
       method: 'PATCH',
       body: JSON.stringify(problemObj)
     })
-      .then(() => {
-        const content = `✅  Problem Link Submitted. Great job <@${userId}>!\n\n` + 
-                        `❓  Problem Completed: <${problem_url}>\n\n` + 
-                        `📅  Date: ${new Date().toLocaleString()}`
-        ;
+      .then((response) => response.json())
+      .then(async (res) => {
+        /**
+         * Response will show all of the users problems, get the last index of the problems array
+         * to retrieve the difficulty
+         * 
+         * Something to keep track of: I've seen this fail on a "cold start". Which technically
+         * shouldn't exist because I've been locally starting it up/closing it & it works then.
+         * Could it be from the parsing of the response? Worst case I can follow getDifficulty()
+         * from AWS/utils
+         * 
+         * Visual of /complete response:
+         * -----------------------------
+         *  "UpdatedAttributes": {
+              "Attributes": {
+                "MediumCount": 10,
+                "TotalCount": 11,
+                "problems": [
+                    {
+                        "date": "1/17/2023, 10:35:37 AM",
+                        "difficulty": "Easy",
+                        "link": "https://leetcode.com/problems/length-of-last-word/"
+                    },
+                    ...
+                ]
+              }
+            }
+         */
+        const problemCompleted = res.UpdatedAttributes.Attributes.problems.at(-1); 
+        const difficulty = problemCompleted.difficulty;
+        
+        const title = `✅  Problem Link Submitted. Great job ${username}!`;
+        const description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
+                            `📚  **Difficulty**: ${difficulty}\n\n` + 
+                            `📅  **Date**: ${new Date().toLocaleString()} PST`; 
 
-        return interaction.reply({
-          content: content
-        })
+        const completeEmbed = {
+          "title": title,
+          "description": description,
+          "color": 0x239d38
+        }
+
+        const message = await interaction.reply({
+          embeds: [completeEmbed],
+          fetchReply: true
+        });
+
+        message.react('🔥');
+        message.react('💯');
+        message.react('✅');
       })
       .catch((err) => {
         console.log('/COMPLETE error: ', err);
