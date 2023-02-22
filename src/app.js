@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { capitalize, getProgressStats, getProgressList, getRanking } from './utils.js';
+import { getProgressStats, getProgressList, getRanking } from './utils.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
