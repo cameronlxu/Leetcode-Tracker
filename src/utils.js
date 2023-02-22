@@ -108,7 +108,7 @@ export function getProgressStats(user, data) {
   return statsEmbed;
 }
 
-export function getProgressList(userId, problems) {
+export function getProgressList(user, problems) {
   let easyProblems = [];
   let mediumProblems = [];
   let hardProblems = [];
@@ -139,18 +139,29 @@ export function getProgressList(userId, problems) {
     return `${problems.map((problem) => `✔️ ${problem.date.split(',')[0]} - <${problem.link}>\n`).join('')}` // Ex. 1/21/23 - {link}
   }
 
-  // Progress List Content
-  const content = `Progress Stats for User: <@${userId}> as of - ${new Date().toLocaleString()}\n`
-                + `__**List of Problems Completed**__\n`
+  const description = `__**List of Problems Completed**__\n`
                 + "📗 ***Easy***:\n"
                 + printProblems(easyProblems)
                 + "\n📒 ***Medium***:\n"
                 + printProblems(mediumProblems)
                 + "\n📕 ***Hard***:\n"
-                + printProblems(hardProblems)
-; 
+                + printProblems(hardProblems);
+
+  const listEmbed = [
+    {
+      "color": 0x2a79c3,
+      "description": description,
+      "thumbnail": {
+        "url": user.avatarURL(),
+        "height": 0,
+        "width": 0
+      },
+      "timestamp": new Date().toISOString(),
+      "title": `Progress List for: ${user.username}`,
+    }
+  ];
  
-  return content;
+  return listEmbed;
 }
 
 export function getRanking(option, rankData) {
