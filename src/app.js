@@ -45,12 +45,32 @@ client.on('interactionCreate', async interaction => {
       link: problem_url
     }
 
+    let message;
+    let completeEmbed = {
+      "title": `✅  Problem Link Submitted. Great job ${username}!`,
+      "description": '',
+      "color": 0x239d38
+    }
+
     fetch(`${process.env.API_LINK}/complete`, {
       method: 'PATCH',
       body: JSON.stringify(problemObj)
     })
+      // First reply without difficulty, then edit embed using the API response to show difficulty
+      // This shortens the response time so the command doesn't time out
+      .then(async (response) => {
+        completeEmbed.description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
+                      `📅  **Date**: ${new Date().toLocaleString()} PST`; 
+
+        message = await interaction.reply({
+          embeds: [completeEmbed],
+          fetchReply: true  // Needed for reactions
+        });
+
+        return response;
+      })
       .then((response) => response.json())
-      .then(async (res) => {
+      .then((res) => {
         /**
          * Response will show all of the users problems, get the last index of the problems array
          * to retrieve the difficulty
@@ -79,23 +99,12 @@ client.on('interactionCreate', async interaction => {
          */
         const problemCompleted = res.UpdatedAttributes.Attributes.problems.at(-1); 
         const difficulty = problemCompleted.difficulty;
-        
-        const title = `✅  Problem Link Submitted. Great job ${username}!`;
-        const description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
-                            `📚  **Difficulty**: ${difficulty}\n\n` + 
-                            `📅  **Date**: ${new Date().toLocaleString()} PST`; 
 
-        const completeEmbed = {
-          "title": title,
-          "description": description,
-          "color": 0x239d38
-        }
+        completeEmbed.description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
+                      `📚  **Difficulty**: ${difficulty}\n\n` + 
+                      `📅  **Date**: ${new Date().toLocaleString()} PST`; 
 
-        const message = await interaction.reply({
-          embeds: [completeEmbed],
-          fetchReply: true
-        });
-
+        message.edit({ embeds: [completeEmbed] });
         message.react('🔥');
         message.react('💯');
         message.react('✅');
