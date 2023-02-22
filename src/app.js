@@ -130,20 +130,18 @@ client.on('interactionCreate', async interaction => {
   }
 
   if (commandName === 'ranking') {
-    const option = interaction.options.getSubcommand();
-
-    // Capitlize the first letter
-    const capitalizedOption = capitalize(option);
+    const option = interaction.options.getString('difficulty');
     
-    fetch(`${process.env.API_LINK}/ranking?difficulty=${capitalizedOption}`)
+    fetch(`${process.env.API_LINK}/ranking?difficulty=${option}`)
     .then((response) => response.json())
     .then((rankData) => {
       return interaction.reply({
         embeds: [
           {
-            title: `__***${option.toUpperCase()}* Leaderboard (${new Date().toLocaleString()})**__`,
-            description: getRanking(capitalizedOption, rankData),
-            color: 0x2ac331
+            title: `__***${option.toUpperCase()}* Leaderboard**__`,
+            description: getRanking(option, rankData),
+            color: 0xd96363,
+            timestamp: new Date().toISOString()
           }
         ]
       });

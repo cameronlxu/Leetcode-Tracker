@@ -44,24 +44,28 @@ const commands = [
     description: 'Rankings amongst leetcode tracker users based on a certain difficulty category',
     options: [
       {
-        name: 'total',
-        description: 'Total problems completed ranking',
-        type: 1
-      },
-      {
-        name: 'easy',
-        description: 'Easy problems completed ranking',
-        type: 1
-      },
-      {
-        name: 'medium',
-        description: 'Medium problems completed ranking',
-        type: 1
-      },
-      {
-        name: 'hard',
-        description: 'Hard problems completed ranking',
-        type: 1
+        name: 'difficulty',
+        description: 'categorized by difficulty or the total count',
+        choices: [
+          {
+            name: 'Total',
+            value: 'Total'
+          },
+          {
+            name: 'Easy',
+            value: 'Easy'
+          },
+          {
+            name: 'Medium',
+            value: 'Medium'
+          },
+          {
+            name: 'Hard',
+            value: 'Hard'
+          },
+        ],
+        required: true,
+        type: 3
       }
     ]
   }
