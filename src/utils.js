@@ -49,7 +49,7 @@ export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export function getProgressStats(userId, data) {
+export function getProgressStats(user, data) {
   /**
    * Find the difference in days from the latest problem to today
    * 
@@ -70,20 +70,42 @@ export function getProgressStats(userId, data) {
     diff_in_days = diff_in_time / (1000 * 3600 * 24);
   }
 
-  //Compile data to produce the content to show the user 
-  const stats = `Progress Stats for User: <@${userId}> as of - ${new Date().toLocaleString()}\n`
-              + `__**Problems Completed**__\n`
-              + `📚 Total:  ${data.total}\n`
-              + `📗 Easy:   ${data.easy}\n`
-              + `📒 Medium: ${data.medium}\n`
-              + `📕 Hard:   ${data.hard}\n\n`
-              + `__**Latest Problem**__\n`
-              + `🔗 Link: <${data.latestProblem.link}>\n`
-              + `⭐ Difficulty: ${data.latestProblem.difficulty}\n`
-              + `🗓️ Date: ${data.latestProblem.date}\n`
-              + `🚀 Days since completion: ${diff_in_days} days`;
+  //Compile data to produce the content to show the user
+  const title = `Progress Stats for: ${user.username}`; 
 
-  return stats;
+  const problemsCompletedField = {
+    "name": "__**Problems Completed**__",
+    "value":  `📚 Total:  ${data.total}\n`
+            + `📗 Easy:   ${data.easy}\n`
+            + `📒 Medium: ${data.medium}\n`
+            + `📕 Hard:   ${data.hard}`,
+    "inline": true
+  };
+
+  const latestProblemField = {
+    "name": "__**Latest Problem**__",
+    "value":  `🔗 Link: <${data.latestProblem.link}>\n`
+            + `⭐ Difficulty: ${data.latestProblem.difficulty}\n`
+            + `🗓️ Date: ${data.latestProblem.date}\n`
+            + `🚀 Days since completion: ${diff_in_days} days`,
+    "inline": true
+  };
+
+  const statsEmbed = [
+    {
+      "color": 0x2a79c3,
+      "fields": [problemsCompletedField, latestProblemField],
+      "thumbnail": {
+        "url": user.avatarURL(),
+        "height": 0,
+        "width": 0
+      },
+      "timestamp": new Date().toISOString(),
+      "title": title,
+    }
+  ];
+
+  return statsEmbed;
 }
 
 export function getProgressList(userId, problems) {

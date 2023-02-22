@@ -116,15 +116,15 @@ client.on('interactionCreate', async interaction => {
          * - /progress stats
          * - /progress list 
          */ 
-        let content;
+        let progressEmbed;
         if (option === 'stats') {
-          content = getProgressStats(userId, userData);
+          progressEmbed = getProgressStats(user, userData);
         } else if (option === 'list') {
-          content = getProgressList(userId, userData.problems);
+          progressEmbed = getProgressList(user, userData.problems);
         }
 
         return interaction.reply({
-          content: content
+          embeds: progressEmbed
         });
       });
   }
