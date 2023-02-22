@@ -68,6 +68,11 @@ const commands = [
         type: 3
       }
     ]
+  },
+  // HELP
+  {
+    name: 'help',
+    description: 'Not sure what commands are available? Take a look!'
   }
 ];
 

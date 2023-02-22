@@ -147,6 +147,61 @@ client.on('interactionCreate', async interaction => {
       });
     });
   }
+
+  if (commandName === 'help') {
+    const githubLink = 'https://github.com/cameronlxu/Leetcode-Tracker';
+    const description = "WTF is this? 🫣\n\n" + 
+                        `Leetcode Tracker is Discord Bot that assists users with keeping track of their leetcode problem completion progress. The github repository can be found here: <${githubLink}>\n\n` + 
+                        "That being said, let us take a look at the available commands:";
+
+    const createDesc = "Used once to create your account in the database. If somehow used again it will not recreate your account so don't worry. 🫡";
+    const completeDesc =  "Submit a completed problem. Accepts a leetcode link as an argument. The link must at least have the name in it. For example:\n" +
+                          "- https://leetcode.com/problems/two-sum/solutions/\n" + 
+                          "- https://leetcode.com/problems/two-sum/submissions/768104833/\n\n" +
+                          'Having the "/solutions" or "/submissions/..." does not matter as the bot will parse through the given link argument.';
+
+    const progressDesc =  "Take a look at your progress so far! There are two subcommands:\n" +
+                          "- Stats\n" +
+                          "- List\n\n" + 
+                          "Stats displays the counts of problems done categorized by difficulty along with the total count. It will also show you the latest problem you've done and how many days it's been since then.\n\nList displays the problems you have completed separated by difficulty. The links of the problems will be shown along with the date completed (using the /complete command).";
+
+    const rankingDesc = "Take a look where you stand in comparison to other users using this bot.\n\n" + 
+                        "When using this you will be presented with a choice of which difficulty leaderboard to view.";
+
+    return interaction.reply({
+      embeds: [
+        {
+          "title": 'Leetcode Tracker - Help',
+          "description": description,
+          "color": 0xffffff,
+          "fields": [
+            // Line break
+            {
+              name: '\u200B',
+              value: '',
+            },
+            {
+              "name": `➡️ __**/create**__`,
+              "value": createDesc
+            },
+            {
+              "name": `➡️ __**/complete**__`,
+              "value": completeDesc
+            },
+            {
+              "name": `➡️ __**/progress**__`,
+              "value": progressDesc
+            },
+            {
+              "name": `➡️ __**/ranking**__`,
+              "value": rankingDesc
+            }
+          ]
+        }
+      ],
+      ephemeral: true
+    })
+  }
 });
 
 client.login(process.env.DISCORD_TOKEN);
