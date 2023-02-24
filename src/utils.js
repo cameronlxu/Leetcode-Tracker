@@ -37,7 +37,7 @@ export function getProgressStats(user, data) {
     "name": "__**Latest Problem**__",
     "value":  `🔗 Link: <${data.latestProblem.link}>\n`
             + `⭐ Difficulty: ${data.latestProblem.difficulty}\n`
-            + `🗓️ Date: ${data.latestProblem.date}\n`
+            + `🗓️ Date: ${data.latestProblem.date} PST\n`
             + `🚀 Days since completion: ${diff_in_days} days`,
     "inline": true
   };
