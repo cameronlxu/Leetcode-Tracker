@@ -45,40 +45,23 @@ client.on('interactionCreate', async interaction => {
       link: problem_url
     }
 
-    let message;
     let completeEmbed = {
       "title": `✅  Problem Link Submitted. Great job ${username}!`,
       "description": '',
       "color": 0x239d38
     }
 
+    interaction.deferReply();
+
     fetch(`${process.env.API_LINK}/complete`, {
       method: 'PATCH',
       body: JSON.stringify(problemObj)
     })
-      // First reply without difficulty, then edit embed using the API response to show difficulty
-      // This shortens the response time so the command doesn't time out
-      .then(async (response) => {
-        completeEmbed.description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
-                      `📅  **Date**: ${new Date().toLocaleString()} PST`; 
-
-        message = await interaction.reply({
-          embeds: [completeEmbed],
-          fetchReply: true  // Needed for reactions
-        });
-
-        return response;
-      })
       .then((response) => response.json())
-      .then((res) => {
+      .then(async (res) => {
         /**
          * Response will show all of the users problems, get the last index of the problems array
          * to retrieve the difficulty
-         * 
-         * Something to keep track of: I've seen this fail on a "cold start". Which technically
-         * shouldn't exist because I've been locally starting it up/closing it & it works then.
-         * Could it be from the parsing of the response? Worst case I can follow getDifficulty()
-         * from AWS/utils
          * 
          * Visual of /complete response:
          * -----------------------------
@@ -101,13 +84,13 @@ client.on('interactionCreate', async interaction => {
         const difficulty = problemCompleted.difficulty;
 
         completeEmbed.description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
-                      `📚  **Difficulty**: ${difficulty}\n\n` + 
-                      `📅  **Date**: ${new Date().toLocaleString()} PST`; 
+                                    `📚  **Difficulty**: ${difficulty}\n\n` +
+                                    `📅  **Date**: ${new Date().toLocaleString()} PST`;
 
-        message.edit({ embeds: [completeEmbed] });
-        message.react('🔥');
-        message.react('💯');
-        message.react('✅');
+        const message = await interaction.editReply({ embeds: [completeEmbed], fetchReply: true });
+        message.react('✅')
+          .then(() => message.react('🔥'))
+          .then(() => message.react('💯'));
       })
       .catch((err) => {
         console.log('/COMPLETE error: ', err);
