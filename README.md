@@ -6,19 +6,22 @@ Leetcode Tracker is Discord Bot that assists users with keeping track of their l
 
 The main focus is allowing the users to input the link of the completed problem and the bot will store that information in a database which can be viewed at a later time. With this, users will to see their current progress - whether a statistical overview or a full view list of all the problems he/she has completed separated by category & chronological order. Lastly to "game-ify" their experience, there is a ranking system that compares against the Total/Easy/Medium/Hard problem count completed amongst all users. 
 
-On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [Oracle Cloud Infrastructure Compute Service](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/computeoverview.htm) through a Virtual Machine. The process of the bot is kept alive using a daemon process manager: [pm2](https://pm2.keymetrics.io). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data hosted in the NoSQL database. 
+On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [Oracle Cloud Infrastructure Compute Service](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/computeoverview.htm) through a Virtual Machine. The process of the bot is kept alive using a daemon process manager: [pm2](https://pm2.keymetrics.io). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data stored in the NoSQL database. 
 
 ### Current Requirements
-- [x] User can use the /create command to only create an account (once)
-- [x] User can use the /complete command to input the link of the newly completed problem which will add to their problems completed
-- [x] User can use the /progress command to retrieve their data in a statistical overview or problem list layout
-- [x] User can use the /ranking command to view the rankings (problem count) based on a difficulty chosen: Easy, Medium, Hard, Total
-- [x] User can use the /help command to see what the Leetcode Tracker bot is along with its functionalities
-- [x] The bot will respond to user commands with an [embed](https://discordjs.guide/popular-topics/embeds.html#embed-preview)
+- [x] `/create` to only create an account (once)
+- [x] `/complete` to input the link of the newly completed problem which will add to their problems completed
+- [x] `/progress` to retrieve their data in a statistical overview or problem list layout
+- [x] `/ranking` to view the rankings (problem count) based on a difficulty chosen: Easy, Medium, Hard, Total
+- [x] `/help` to see what the Leetcode Tracker bot is along with its functionalities
+- [x] Responses are in an [embed](https://discordjs.guide/popular-topics/embeds.html#embed-preview) format
 
 ### Future TODO List
 - [ ] User can start/end a session that other users can join, which will also have it's own ranking while the session is active
     - Problems completed here will also contribute to the user's overall progress
+- [ ] `/progress list` response message will have a multi-page embed
+    - Once users complete many problems, the response message will eventually become too long. This will combat that problem by maintaining a certain embed size
+    - An example can be seen [here on a stackoverflow question](https://stackoverflow.com/questions/60691780/how-do-you-make-embed-pages-in-discord-js)
 
 ----------
 
@@ -81,7 +84,8 @@ On the technical side, the discord bot uses JavaScript on the front end to inter
 
 ## 🖥️ Technical Architecture 
 
-![Discord Bot Architecture](https://user-images.githubusercontent.com/12592121/221272045-a2de90fe-dbd8-43e7-b8e8-a0dd6bd2134f.png)
+![Discord Bot Architecture](https://user-images.githubusercontent.com/12592121/221297569-e8a2c583-639b-41a3-aa14-766476ec3084.png)
+
 
 
 ## Installation
