@@ -13,6 +13,7 @@ const RANKING_PATH = '/ranking';
 const DELETE_PATH = '/delete';
 const HEALTH_PATH = '/health';
 const REMOVE_DUPLICATES = '/remove_duplicates';
+const REDO_COUNTS = '/redo_counts';
 
 exports.handler = async function(event) {
     console.log('Request event: ', event);
@@ -39,6 +40,9 @@ exports.handler = async function(event) {
             break;
         case event.httpMethod === 'GET' && event.path === REMOVE_DUPLICATES:
             response = await removeDuplicateProblems(event.queryStringParameters.userId, event.queryStringParameters.privateKey);
+            break;
+        case event.httpMethod === 'GET' && event.path === REDO_COUNTS:
+            response = await redoProblemCounts(event.queryStringParameters.userId, event.queryStringParameters.privateKey);
             break;
     }
 
@@ -283,5 +287,97 @@ async function removeDuplicateProblems(userId, pk) {
         return buildResponse(200, body);
     }, (error) => {
         console.error("PATCHERROR: Could not patch user! : ", error);
+    });
+}
+
+async function redoProblemCounts(userId, pk) {
+    // Used to only allow developer(s) to access this function
+    if (pk != privateKey) {
+        return buildResponse(401, { Error: "Missing or Incorrect Private Key" });
+    }
+
+    // Get User Data (specifically the problems array)
+    const queryParams = {
+        ExpressionAttributeNames: {
+            "#theUser": "userId"
+        },
+        ExpressionAttributeValues: {
+            ":userId": userId
+        }, 
+        KeyConditionExpression: "#theUser = :userId", 
+        TableName: TABLE_NAME
+    }; 
+
+    let problems;
+
+    await DYANMODB.query(queryParams).promise().then((response) => {
+        console.log(`removeDuplicateProblems query successful for userId: ${userId}`, JSON.stringify(response, null, 2));
+
+        const userData = response.Items[0];     // index 0 to return the JSON format, not the array
+        problems = userData.problems;
+    }, (error) => {
+        console.error("QUERYERROR: Could not query user information! : ", error);
+    });
+
+    // Perform problem difficulty counts
+    let easyCount = 0;
+    let mediumCount = 0;
+    let hardCount = 0;
+
+    for (let idx = 0; idx < problems.length; idx++) {
+        const difficulty = problems[idx].difficulty;
+        switch (difficulty) {
+            case "Easy":
+                easyCount += 1;
+                break;
+            case "Medium":
+                mediumCount += 1;
+                break;
+            case "Hard":
+                hardCount += 1;
+                break;
+        }
+    }
+
+    // Update user difficulty counts with the newly counted values
+    let params = {
+        TableName: TABLE_NAME,
+        Key: {
+            'userId': userId,
+        },
+        UpdateExpression: `SET #easyCount = :newEasyCount,
+            #mediumCount = :newMediumCount,
+            #hardCount = :newHardCount,
+            #totalCount = :newTotalCount
+        `,
+        ExpressionAttributeNames: {
+            "#easyCount": "EasyCount",
+            "#mediumCount": "MediumCount",
+            "#hardCount": "HardCount",
+            "#totalCount": "TotalCount"
+        },
+        ExpressionAttributeValues: {
+            ':newEasyCount': easyCount,
+            ':newMediumCount': mediumCount,
+            ':newHardCount': hardCount,
+            ':newTotalCount': easyCount + mediumCount + hardCount,
+        },
+        ReturnValues: 'UPDATED_OLD'
+    }
+    
+    return await DYANMODB.update(params).promise().then((response) => {
+        console.log("redoProblemCounts() Update Information: ", response);
+        const body = {
+            Operation: 'UPDATE',
+            Message: 'SUCCESS',
+            UpdatedAttributes: response,
+            newEasyCount: easyCount,
+            newMediumCount: mediumCount,
+            newHardCount: hardCount,
+            newTotalCount: easyCount + mediumCount + hardCount,
+        }
+        return buildResponse(200, body);
+    }, (error) => {
+        console.error("PATCHERROR: Could not patch user for redoProblemCounts()! : ", error);
     });
 }
