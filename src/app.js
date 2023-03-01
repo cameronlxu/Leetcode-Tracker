@@ -85,7 +85,7 @@ client.on('interactionCreate', async interaction => {
 
         completeEmbed.description = `❓  **Problem Completed**: <${getDefaultLink(problem_url)}>\n\n` + 
                                     `📚  **Difficulty**: ${difficulty}\n\n` +
-                                    `📅  **Date**: ${new Date().toLocaleString()} PST`;
+                                    `📅  **Date**: ${new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" })} PST`;
 
         const message = await interaction.editReply({ embeds: [completeEmbed], fetchReply: true });
         message.react('✅')
