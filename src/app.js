@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { getProgressStats, getProgressList, getRanking } from './utils.js';
+import { getProgressStats, getProgressList, getRanking, getDefaultLink } from './utils.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -83,7 +83,7 @@ client.on('interactionCreate', async interaction => {
         const problemCompleted = res.UpdatedAttributes.Attributes.problems.at(-1); 
         const difficulty = problemCompleted.difficulty;
 
-        completeEmbed.description = `❓  **Problem Completed**: <${problem_url}>\n\n` + 
+        completeEmbed.description = `❓  **Problem Completed**: <${getDefaultLink(problem_url)}>\n\n` + 
                                     `📚  **Difficulty**: ${difficulty}\n\n` +
                                     `📅  **Date**: ${new Date().toLocaleString()} PST`;
 
