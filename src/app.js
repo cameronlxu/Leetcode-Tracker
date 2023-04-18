@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
 import { Client, GatewayIntentBits } from 'discord.js';
-import { getProgressStats, getProgressList, getRanking, getDefaultLink } from './utils.js';
+import { getProgressStats, getProgressList, getRanking, getDefaultLink, generateNewCodeShare } from './utils.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -193,6 +193,28 @@ client.on('interactionCreate', async interaction => {
       ],
       ephemeral: true
     })
+  }
+
+  if (commandName === 'codeshare') {
+    const codeShareLink = generateNewCodeShare();
+
+    return interaction.reply({
+      content: "Here is a new codeshare link",
+      components: [
+        {
+          "type": 1,
+          "components": [
+            {
+              "style": 5,
+              "label": "Codeshare Link",
+              "url": `${codeShareLink}`,
+              "disabled": false,
+              "type": 2
+            }
+          ]
+        }
+      ]
+    });
   }
 });
 

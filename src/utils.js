@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import puppeteer from 'puppeteer';
 
 export function getProgressStats(user, data) {
   /**
@@ -159,4 +160,16 @@ export function getDefaultLink(URL) {
   let defaultUrl = splitBySlash[0] + "//" + splitBySlash[2] + "/" + splitBySlash[3] + "/" + splitBySlash[4] + "/";
 
   return defaultUrl;
+}
+
+export async function generateNewCodeShare() {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  await page.goto('https://codeshare.io/new');
+  const codeShareLink = page.url();
+
+  await browser.close();
+
+  return codeShareLink;
 }

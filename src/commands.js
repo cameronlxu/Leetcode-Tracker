@@ -73,6 +73,11 @@ const commands = [
   {
     name: 'help',
     description: 'Not sure what commands are available? Take a look!'
+  },
+  // CODESHARE
+  {
+    name: 'codeshare',
+    description: 'Create a codeshare link'
   }
 ];
 
