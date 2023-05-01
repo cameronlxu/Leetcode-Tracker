@@ -6,7 +6,7 @@ Leetcode Tracker is Discord Bot that assists users with keeping track of their l
 
 The main focus is allowing the users to input the link of the completed problem and the bot will store that information in a database which can be viewed at a later time. With this, users will to see their current progress - whether a statistical overview or a full view list of all the problems he/she has completed separated by category & chronological order. Lastly to "game-ify" their experience, there is a ranking system that compares against the Total/Easy/Medium/Hard problem count completed amongst all users. 
 
-On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [Oracle Cloud Infrastructure Compute Service](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/computeoverview.htm) through a Virtual Machine. The process of the bot is kept alive using a daemon process manager: [pm2](https://pm2.keymetrics.io). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data stored in the NoSQL database. 
+On the technical side, the discord bot uses JavaScript on the front end to interact with the user and the code is hosted on [Oracle Cloud Infrastructure Compute Service](https://docs.oracle.com/en-us/iaas/Content/Compute/Concepts/computeoverview.htm) through a Virtual Machine. The process of the bot is kept alive using a daemon process manager: [pm2](https://pm2.keymetrics.io). The backend is entirely made up of [Amazon Web Services](https://aws.amazon.com), more specifically [API Gateway](https://aws.amazon.com/api-gateway/?nc2=type_a), [Lambda](https://aws.amazon.com/lambda/?nc2=type_a), & [DynamoDB](https://aws.amazon.com/dynamodb/?nc2=type_a). The bot makes API calls to either create, update, or retrieve data stored in the NoSQL database. Other libraries used are [Puppeteer](https://pptr.dev) and [Cron](https://www.npmjs.com/package/cron).
 
 ### Current Requirements
 - [x] `/create` to only create an account (once)
@@ -14,6 +14,7 @@ On the technical side, the discord bot uses JavaScript on the front end to inter
 - [x] `/progress` to retrieve their data in a statistical overview or problem list layout
 - [x] `/ranking` to view the rankings (problem count) based on a difficulty chosen: Easy, Medium, Hard, Total
 - [x] `/help` to see what the Leetcode Tracker bot is along with its functionalities
+- [x] `/codeshare` to generate a new codeshare link that will expire after 24 hours
 - [x] Responses are in an [embed](https://discordjs.guide/popular-topics/embeds.html#embed-preview) format
 
 ### Future TODO List
@@ -73,13 +74,16 @@ On the technical side, the discord bot uses JavaScript on the front end to inter
 ![bot response for rankings](https://user-images.githubusercontent.com/12592121/221268651-bcb99992-0394-43ac-8b7d-3bfd2a1266dd.png)
 
 
-
 ## /help
 - If a user wants to learn more information about the Leetcode Tracker bot or about the available commands, this command is for them
 
 ![/help command response](https://user-images.githubusercontent.com/12592121/221268730-899dc9e9-dbbf-4d97-bace-e230d1039a1c.png)
 
 
+## /codeshare
+- If a user wants to create a codeshare link, they are able to with this command
+
+![/codeshare command response](https://user-images.githubusercontent.com/12592121/235514716-fe0d5fe1-bb78-48b3-99c9-194bd6218ec5.png)
 ----------
 
 ## 🖥️ Technical Architecture 
