@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import fetch from 'node-fetch';
+import { CronJob } from 'cron';
 import { Client, GatewayIntentBits } from 'discord.js';
 import { getProgressStats, getProgressList, getRanking, getDefaultLink, generateNewCodeShare } from './utils.js';
 
@@ -160,6 +161,9 @@ client.on('interactionCreate', async interaction => {
     const rankingDesc = "Take a look where you stand in comparison to other users using this bot.\n\n" + 
                         "When using this you will be presented with a choice of which difficulty leaderboard to view.";
 
+    const codeshareDesc = "Creates a codeshare link for multiple users to join.\n" + 
+                          "Codeshare links expire 24 hours after creation, so Leetcode Tracker will also delete the message after 24 hours.";
+
     return interaction.reply({
       embeds: [
         {
@@ -187,6 +191,10 @@ client.on('interactionCreate', async interaction => {
             {
               "name": `➡️ __**/ranking**__`,
               "value": rankingDesc
+            },
+            {
+              "name": `➡️ __**/codeshare**__`,
+              "value": codeshareDesc
             }
           ]
         }
@@ -200,8 +208,10 @@ client.on('interactionCreate', async interaction => {
 
     const codeShareLink = await generateNewCodeShare();
 
+    const expireTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     interaction.editReply({
-      content: "Here is a new codeshare link",
+      content: `Here is a new codeshare link. It will expire in 24 hours (${expireTime.toLocaleString()} PST)`,
       components: [
         {
           "type": 1,
@@ -217,6 +227,15 @@ client.on('interactionCreate', async interaction => {
         }
       ],
       fetchReply: true
+    }).then(async msg => {  
+      // Schedule a cron job to delete the reply after 24 hours
+      const job = new CronJob(expireTime, function() {
+        msg.delete()
+          .then(() => console.log(`Codeshare link deleted successfully: ${codeShareLink}`))
+          .catch(console.error);
+      });
+  
+      job.start();
     });
   }
 });
