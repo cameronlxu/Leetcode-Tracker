@@ -196,9 +196,11 @@ client.on('interactionCreate', async interaction => {
   }
 
   if (commandName === 'codeshare') {
-    const codeShareLink = generateNewCodeShare();
+    interaction.deferReply(); // For some reason it consistently takes > 3s, need to deferReply
 
-    return interaction.reply({
+    const codeShareLink = await generateNewCodeShare();
+
+    interaction.editReply({
       content: "Here is a new codeshare link",
       components: [
         {
@@ -213,7 +215,8 @@ client.on('interactionCreate', async interaction => {
             }
           ]
         }
-      ]
+      ],
+      fetchReply: true
     });
   }
 });
